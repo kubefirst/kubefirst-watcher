@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // StartWatcher - starts watcher tooling
-func StartWatcher() error {
+var logger *zap.Logger
+
+func StartWatcher(loggerIn *zap.Logger) error {
+	logger = loggerIn
 	//Setup channels
 	interestingPods := make(chan Condition)
 	defer close(interestingPods)
@@ -29,8 +34,8 @@ func StartWatcher() error {
 }
 
 func checkPod(goal ExitScenario, in <-chan Condition, stopper chan struct{}) {
-	fmt.Println("Started Listener")
-	fmt.Println(goal)
+	logger.Debug("Started Listener")
+	logger.Info(fmt.Sprintf("%#v", goal))
 	pendingConditions := len(goal.Conditions)
 
 	for {
@@ -44,9 +49,9 @@ func checkPod(goal ExitScenario, in <-chan Condition, stopper chan struct{}) {
 				currentCondition.Kind == receivedResource.Kind &&
 				currentCondition.Met == false {
 				goal.Conditions[key].Met = true
-				fmt.Println("\n Condition  Met:", currentCondition)
+				logger.Debug("\n Condition  Met:" + fmt.Sprintf("%#v", currentCondition))
 				pendingConditions = pendingConditions - 1
-				fmt.Println("\n Pending Conditions:", pendingConditions)
+				logger.Debug("\n Pending Conditions:" + fmt.Sprintf("%#v", pendingConditions))
 				break
 			}
 		}
@@ -54,8 +59,8 @@ func checkPod(goal ExitScenario, in <-chan Condition, stopper chan struct{}) {
 		fmt.Println("\n State of Conditions:", goal.Conditions)
 
 		if pendingConditions < 1 {
-			fmt.Println("All required objects found, ready to close waiting channels")
-			fmt.Println(goal.Conditions)
+			logger.Debug("All required objects found, ready to close waiting channels")
+			logger.Debug(fmt.Sprintf("%#v", goal.Conditions))
 			os.Exit(0)
 		}
 	}
