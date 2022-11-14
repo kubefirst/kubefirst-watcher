@@ -7,31 +7,29 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/6za/k1-watcher/cmd/internal/logutils"
 	"github.com/6za/k1-watcher/pkg/k1/informer"
 	"github.com/spf13/cobra"
 )
+
+var configFile string
 
 // watcherCmd represents the watcher command
 var watcherCmd = &cobra.Command{
 	Use:   "watcher",
 	Short: "Observe k8s events and wait conditions to be satisfied",
 	Long:  `TBD`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("watcher called")
+		logutils.InitializeLogger()
+		logutils.Logger.Info("Hello World")
 		informer.StartWatcher()
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(watcherCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// watcherCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// watcherCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	watcherCmd.Flags().StringVarP(&configFile, "config-file", "c", "", "Provide a yaml witth watcher settings")
 }
