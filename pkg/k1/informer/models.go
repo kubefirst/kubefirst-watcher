@@ -11,5 +11,5 @@ type Condition struct {
 	Phase      string `yaml:"phase"`
 	APIVersion string `yaml:"apiVersion"`
 	Kind       string `yaml:"kind"`
-	Met        bool   `yaml:"kind"`
+	Met        bool
 }

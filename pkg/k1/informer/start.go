@@ -2,16 +2,18 @@ package informer
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
 )
 
 // StartWatcher - starts watcher tooling
 var logger *zap.Logger
 
-func StartWatcher(loggerIn *zap.Logger) error {
+func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	logger = loggerIn
 	//Setup channels
 	interestingPods := make(chan Condition)
@@ -20,20 +22,24 @@ func StartWatcher(loggerIn *zap.Logger) error {
 	defer close(stopper)
 
 	//Process Conditions into goals
-	exitScenario, _ := processExitScenario("")
+	exitScenario, _ := loadExitScenario(configFile)
+	logger.Info(fmt.Sprintf("%#v", exitScenario))
 	//Process Conditions into watchers
 	//Start Goals tracker
 	go checkPod(exitScenario, interestingPods, stopper)
 	//Start Watchers
-	go WatchPods(exitScenario.Conditions[0], interestingPods, stopper)
-	go WatchPods(exitScenario.Conditions[1], interestingPods, stopper)
+	for k, _ := range exitScenario.Conditions {
+		go WatchPods(exitScenario.Conditions[k], interestingPods, stopper)
+	}
+
+	//go WatchPods(exitScenario.Conditions[1], interestingPods, stopper)
 	//Check Current State - to catch events pre-informers are started
 
 	time.Sleep(300 * time.Second)
 	return nil
 }
 
-func checkPod(goal ExitScenario, in <-chan Condition, stopper chan struct{}) {
+func checkPod(goal *ExitScenario, in <-chan Condition, stopper chan struct{}) {
 	logger.Debug("Started Listener")
 	logger.Info(fmt.Sprintf("%#v", goal))
 	pendingConditions := len(goal.Conditions)
@@ -89,4 +95,20 @@ func processExitScenario(body string) (ExitScenario, error) {
 		},
 	}, nil
 
+}
+
+func loadExitScenario(file string) (*ExitScenario, error) {
+	exitScenario := &ExitScenario{}
+	logger.Debug("Loading config file:" + file)
+	yamlFile, err := ioutil.ReadFile(file)
+	if err != nil {
+		logger.Info(fmt.Sprintf("yamlFile.Get err   #%v ", err))
+		return nil, err
+	}
+	err = yaml.Unmarshal(yamlFile, exitScenario)
+	if err != nil {
+		logger.Info(fmt.Sprintf("Unmarshal: %v", err))
+		return nil, err
+	}
+	return exitScenario, nil
 }

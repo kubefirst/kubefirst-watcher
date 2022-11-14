@@ -22,8 +22,8 @@ var watcherCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("watcher called")
 		logutils.InitializeLogger()
-		logutils.Logger.Info("Hello World")
-		informer.StartWatcher(logutils.Logger)
+		logutils.Logger.Info("Watcher ready to start")
+		informer.StartWatcher(configFile, logutils.Logger)
 		return nil
 	},
 }
