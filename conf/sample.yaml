@@ -1,0 +1,21 @@
+
+exit: 0
+timeout: 300
+conditions:
+  - name: sample
+    namespace: default
+    phase: Running      
+    apiVersion: v1
+    kind: Pod
+
+  - name: sample-v3
+    namespace: default
+    phase: Running
+    apiVersion: v1
+    kind: Pod  
+
+  - name: sample-v2
+    namespace: default
+    phase: Running
+    apiVersion: v1
+    kind: Pod  

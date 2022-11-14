@@ -8,10 +8,13 @@ import (
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // StartWatcher - starts watcher tooling
 var logger *zap.Logger
+
+var podGVK = schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Pod"}
 
 func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	logger = loggerIn
@@ -29,14 +32,22 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	go checkPod(exitScenario, interestingPods, stopper)
 	//Start Watchers
 	for k, _ := range exitScenario.Conditions {
-		go WatchPods(exitScenario.Conditions[k], interestingPods, stopper)
+		conditionGVK := schema.FromAPIVersionAndKind(exitScenario.Conditions[k].APIVersion, exitScenario.Conditions[k].Kind)
+		switch conditionGVK {
+		case podGVK:
+			//go WatchPods(exitScenario.Conditions[k], interestingPods, stopper)
+			//		case "linux":
+			//			fmt.Println("Linux.")
+		default:
+			logger.Error(fmt.Sprintf("Error %#v", conditionGVK))
+			return fmt.Errorf("err - unkwon checker for GroupVersionKind")
+		}
+
 	}
-
-	//go WatchPods(exitScenario.Conditions[1], interestingPods, stopper)
+	logger.Info("All conditions checkers started")
 	//Check Current State - to catch events pre-informers are started
-
-	time.Sleep(300 * time.Second)
-	return nil
+	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
+	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
 func checkPod(goal *ExitScenario, in <-chan Condition, stopper chan struct{}) {
@@ -67,7 +78,7 @@ func checkPod(goal *ExitScenario, in <-chan Condition, stopper chan struct{}) {
 		if pendingConditions < 1 {
 			logger.Debug("All required objects found, ready to close waiting channels")
 			logger.Debug(fmt.Sprintf("%#v", goal.Conditions))
-			os.Exit(0)
+			os.Exit(goal.Exit)
 		}
 	}
 }

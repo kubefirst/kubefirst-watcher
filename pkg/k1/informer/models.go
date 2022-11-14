@@ -2,6 +2,7 @@ package informer
 
 type ExitScenario struct {
 	Exit       int         `yaml:"exit"`
+	Timeout    int         `yaml:"timeout"`
 	Conditions []Condition `yaml:"conditions"`
 }
 
