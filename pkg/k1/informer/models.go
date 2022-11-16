@@ -33,9 +33,10 @@ type ExitScenarioState struct {
 }
 
 type Condition struct {
-	Selector string `yaml:"selector"`
-	ID       int    `yaml:"id"`
-	Met      bool   `yaml:"met"`
+	Selector    string `yaml:"selector"`
+	ID          int    `yaml:"id"`
+	Met         bool   `yaml:"met"`
+	Description string `yaml:"description"`
 }
 
 type BasicConfiguration struct {

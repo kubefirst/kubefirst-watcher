@@ -125,22 +125,22 @@ func processExitScenario(exitScenario *ExitScenario) (*ExitScenarioState, error)
 	id := 1
 	for k, _ := range exitScenario.Pods {
 		exitScenario.Pods[k].ID = id
-		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false})
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Pods[k])})
 		id++
 	}
 	for k, _ := range exitScenario.ConfigMaps {
 		exitScenario.ConfigMaps[k].ID = id
-		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false})
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.ConfigMaps[k])})
 		id++
 	}
 	for k, _ := range exitScenario.Secrets {
 		exitScenario.Secrets[k].ID = id
-		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false})
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Secrets[k])})
 		id++
 	}
 	for k, _ := range exitScenario.Services {
 		exitScenario.Services[k].ID = id
-		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false})
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Services[k])})
 		id++
 	}
 	return exitScenarioState, nil
