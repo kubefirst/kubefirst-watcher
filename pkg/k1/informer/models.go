@@ -43,3 +43,8 @@ type BasicConfiguration struct {
 	Namespace string `yaml:"namespace"`
 	Name      string `yaml:"name"`
 }
+
+type BasicK8s interface {
+	GetNamespace() string
+	GetName() string
+}
