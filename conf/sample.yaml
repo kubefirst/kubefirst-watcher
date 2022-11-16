@@ -1,7 +1,7 @@
 
 exit: 0
 timeout: 300
-conditions:
+pods:
   - name: sample
     namespace: default
     phase: Running      
