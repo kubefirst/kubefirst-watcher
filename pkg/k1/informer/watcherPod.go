@@ -55,7 +55,8 @@ func checkMatchConditionPod(obj *corev1.Pod, conditions []PodCondition, matchCon
 			matchCondition <- foundCondition
 			//Remove Condition found
 			//https://github.com/golang/go/wiki/SliceTricks
-			conditions = append(conditions[:k], conditions[k+1:]...)
+			// conditions = append(conditions[:k], conditions[k+1:]...)
+			// it may fail on nil scenarios - extra checks needed
 			//This need to be global, as this checks may run in parallel.
 			//TODO: need to find an list that is thread safe
 			logger.Debug(fmt.Sprintf("Remaning Condition -  status:  %#v ", foundCondition))
