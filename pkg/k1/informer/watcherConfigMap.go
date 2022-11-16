@@ -10,12 +10,7 @@ import (
 
 // TODO: Make this more generic
 
-type BasicK8s interface {
-	GetNamespace() string
-	GetName() string
-}
-
-func WatchConfigMap(conditions []BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}) {
+func WatchConfigMap(conditions []BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 	clientSet := getK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)

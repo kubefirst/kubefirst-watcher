@@ -8,6 +8,7 @@ import (
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
+	"k8s.io/client-go/informers"
 )
 
 // StartWatcher - starts watcher tooling
@@ -30,17 +31,21 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 
 	go checkConditions(exitScenarioState, interestingPods, stopper)
 	//Start Watchers
+	clientSet := getK8SConfig()
+	factory := informers.NewSharedInformerFactory(clientSet, 0)
 	if len(exitScenario.Pods) > 0 {
 		go WatchPods(exitScenario.Pods, interestingPods, stopper)
 	}
 	if len(exitScenario.ConfigMaps) > 0 {
-		go WatchConfigMap(exitScenario.ConfigMaps, interestingPods, stopper)
+		go WatchConfigMap(exitScenario.ConfigMaps, interestingPods, stopper, factory.Core().V1().ConfigMaps().Informer())
 	}
 	if len(exitScenario.Secrets) > 0 {
-		go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
+		go WatchConfigMap(exitScenario.Secrets, interestingPods, stopper, factory.Core().V1().Secrets().Informer())
+		//go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
 	}
 	if len(exitScenario.Services) > 0 {
-		go WatchServices(exitScenario.Services, interestingPods, stopper)
+		go WatchConfigMap(exitScenario.Services, interestingPods, stopper, factory.Core().V1().Services().Informer())
+		//go WatchServices(exitScenario.Services, interestingPods, stopper)
 	}
 	/*
 		for k, _ := range exitScenarioState.Conditions {
