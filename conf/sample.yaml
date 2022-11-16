@@ -1,7 +1,7 @@
 
 exit: 0
 timeout: 300
-conditions:
+pods:
   - name: sample
     namespace: default
     phase: Running      
@@ -19,3 +19,15 @@ conditions:
     phase: Running
     apiVersion: v1
     kind: Pod  
+
+configmaps:
+  - name: sample-cfg
+    namespace: default    
+
+secrets:
+  - name: sample-secret
+    namespace: default    
+
+services:
+  - name: sample-service
+    namespace: default    
