@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchPods(conditions []PodCondition, interestingPods chan Condition, stopper chan struct{}) {
+func WatchPods(conditions []PodCondition, matchConditions chan Condition, stopper chan struct{}) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 	clientSet := getK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
@@ -20,7 +20,7 @@ func WatchPods(conditions []PodCondition, interestingPods chan Condition, stoppe
 			// interface that allows us to get metadata easily
 			mObj := obj.(*corev1.Pod)
 			logger.Debug(fmt.Sprintf("New Pod updated:", mObj.GetName(), mObj.GetNamespace(), mObj.Status.Phase))
-			checkMatchConditionPod(mObj, conditions, interestingPods)
+			checkMatchConditionPod(mObj, conditions, matchConditions)
 
 		},
 		UpdateFunc: func(old, new interface{}) {
@@ -28,7 +28,7 @@ func WatchPods(conditions []PodCondition, interestingPods chan Condition, stoppe
 			// interface that allows us to get metadata easily
 			newObj := new.(*corev1.Pod)
 			logger.Debug(fmt.Sprintf("Pod updated:", newObj.GetName(), newObj.GetNamespace(), newObj.Status.Phase))
-			checkMatchConditionPod(newObj, conditions, interestingPods)
+			checkMatchConditionPod(newObj, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object

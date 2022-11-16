@@ -37,3 +37,8 @@ type Condition struct {
 	ID       int    `yaml:"id"`
 	Met      bool   `yaml:"met"`
 }
+
+type BasicConfiguration struct {
+	Namespace string `yaml:"namespace"`
+	Name      string `yaml:"name"`
+}

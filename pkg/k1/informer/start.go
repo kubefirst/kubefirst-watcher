@@ -33,6 +33,15 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	if len(exitScenario.Pods) > 0 {
 		go WatchPods(exitScenario.Pods, interestingPods, stopper)
 	}
+	if len(exitScenario.ConfigMaps) > 0 {
+		go WatchConfigMap(exitScenario.ConfigMaps, interestingPods, stopper)
+	}
+	if len(exitScenario.Secrets) > 0 {
+		go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
+	}
+	if len(exitScenario.Services) > 0 {
+		go WatchServices(exitScenario.Services, interestingPods, stopper)
+	}
 	/*
 		for k, _ := range exitScenarioState.Conditions {
 			conditionGVK := schema.FromAPIVersionAndKind(exitScenario.Conditions[k].APIVersion, exitScenario.Conditions[k].Kind)

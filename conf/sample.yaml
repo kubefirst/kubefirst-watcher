@@ -19,3 +19,15 @@ pods:
     phase: Running
     apiVersion: v1
     kind: Pod  
+
+configmaps:
+  - name: sample-cfg
+    namespace: default    
+
+secrets:
+  - name: sample-secret
+    namespace: default    
+
+services:
+  - name: sample-service
+    namespace: default    
