@@ -37,14 +37,14 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 		go WatchPods(exitScenario.Pods, interestingPods, stopper)
 	}
 	if len(exitScenario.ConfigMaps) > 0 {
-		go WatchConfigMap(exitScenario.ConfigMaps, interestingPods, stopper, factory.Core().V1().ConfigMaps().Informer())
+		go WatchBasic(exitScenario.ConfigMaps, interestingPods, stopper, factory.Core().V1().ConfigMaps().Informer())
 	}
 	if len(exitScenario.Secrets) > 0 {
-		go WatchConfigMap(exitScenario.Secrets, interestingPods, stopper, factory.Core().V1().Secrets().Informer())
+		go WatchBasic(exitScenario.Secrets, interestingPods, stopper, factory.Core().V1().Secrets().Informer())
 		//go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
 	}
 	if len(exitScenario.Services) > 0 {
-		go WatchConfigMap(exitScenario.Services, interestingPods, stopper, factory.Core().V1().Services().Informer())
+		go WatchBasic(exitScenario.Services, interestingPods, stopper, factory.Core().V1().Services().Informer())
 		//go WatchServices(exitScenario.Services, interestingPods, stopper)
 	}
 	/*

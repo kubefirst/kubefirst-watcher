@@ -3,14 +3,12 @@ package informer
 import (
 	"fmt"
 
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 )
 
 // TODO: Make this more generic
 
-func WatchConfigMap(conditions []BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
+func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -33,70 +31,6 @@ func WatchConfigMap(conditions []BasicConfigurationCondition, matchConditions ch
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			mObj := obj.(BasicK8s)
-			logger.Debug(fmt.Sprintf("New Pod deleted from Store: %s", mObj.GetName()))
-		},
-	})
-	informer.Run(stopper)
-}
-
-func WatchSecrets(conditions []BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}) {
-	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
-	clientSet := getK8SConfig()
-	factory := informers.NewSharedInformerFactory(clientSet, 0)
-	informer := factory.Core().V1().Secrets().Informer()
-
-	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
-			mObj := obj.(*corev1.Secret)
-			logger.Debug(fmt.Sprintf("New Pod updated:", mObj.GetName(), mObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, conditions, matchConditions)
-
-		},
-		UpdateFunc: func(old, new interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
-			newObj := new.(*corev1.Secret)
-			logger.Debug(fmt.Sprintf("Pod updated:", newObj.GetName(), newObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, conditions, matchConditions)
-		},
-		DeleteFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
-			mObj := obj.(*corev1.Secret)
-			logger.Debug(fmt.Sprintf("New Pod deleted from Store: %s", mObj.GetName()))
-		},
-	})
-	informer.Run(stopper)
-}
-
-func WatchServices(conditions []BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}) {
-	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
-	clientSet := getK8SConfig()
-	factory := informers.NewSharedInformerFactory(clientSet, 0)
-	informer := factory.Core().V1().Services().Informer()
-
-	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
-			mObj := obj.(*corev1.Service)
-			logger.Debug(fmt.Sprintf("New Pod updated:", mObj.GetName(), mObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, conditions, matchConditions)
-
-		},
-		UpdateFunc: func(old, new interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
-			newObj := new.(*corev1.Service)
-			logger.Debug(fmt.Sprintf("Pod updated:", newObj.GetName(), newObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, conditions, matchConditions)
-		},
-		DeleteFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
-			mObj := obj.(*corev1.Service)
 			logger.Debug(fmt.Sprintf("New Pod deleted from Store: %s", mObj.GetName()))
 		},
 	})
