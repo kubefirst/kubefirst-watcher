@@ -45,21 +45,24 @@ func checkMatchBasicConfigurationCondition(obj *BasicConfiguration, labels map[s
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&
 			obj.Name == conditions[k].Name {
-			logger.Debug(fmt.Sprintf("Interest BasicConfigurationCondition event found -  status: %#v", obj))
-			foundCondition := Condition{
-				ID:  conditions[k].ID,
-				Met: true,
-			}
-			logger.Debug(fmt.Sprintf("Sending Condition -  status:  %#v ", foundCondition))
-			matchCondition <- foundCondition
-			//Remove Condition found
-			//https://github.com/golang/go/wiki/SliceTricks
-			// conditions = append(conditions[:k], conditions[k+1:]...)
-			// it may fail on nil scenarios - extra checks needed
-			//This need to be global, as this checks may run in parallel.
-			//TODO: need to find an list that is thread safe
-			logger.Debug(fmt.Sprintf("Remaning Condition -  status:  %#v ", foundCondition))
+			matchMap, _ := IsMapPresent(labels, conditions[k].Labels)
+			if matchMap {
+				logger.Debug(fmt.Sprintf("Interest BasicConfigurationCondition event found -  status: %#v", obj))
+				foundCondition := Condition{
+					ID:  conditions[k].ID,
+					Met: true,
+				}
+				logger.Debug(fmt.Sprintf("Sending Condition -  status:  %#v ", foundCondition))
+				matchCondition <- foundCondition
+				//Remove Condition found
+				//https://github.com/golang/go/wiki/SliceTricks
+				// conditions = append(conditions[:k], conditions[k+1:]...)
+				// it may fail on nil scenarios - extra checks needed
+				//This need to be global, as this checks may run in parallel.
+				//TODO: need to find an list that is thread safe
+				logger.Debug(fmt.Sprintf("Remaning Condition -  status:  %#v ", foundCondition))
 
+			}
 		}
 	}
 }
