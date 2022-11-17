@@ -10,20 +10,22 @@ type ExitScenario struct {
 }
 
 type PodCondition struct {
-	ID         int    `yaml:"id"`
-	Namespace  string `yaml:"namespace"`
-	Name       string `yaml:"name"`
-	Phase      string `yaml:"phase"`
-	APIVersion string `yaml:"apiVersion"`
-	Kind       string `yaml:"kind"`
+	ID         int               `yaml:"id"`
+	Namespace  string            `yaml:"namespace"`
+	Name       string            `yaml:"name"`
+	Phase      string            `yaml:"phase"`
+	APIVersion string            `yaml:"apiVersion"`
+	Kind       string            `yaml:"kind"`
+	Labels     map[string]string `yaml:"labels"`
 }
 
 type BasicConfigurationCondition struct {
-	ID         int    `yaml:"id"`
-	Namespace  string `yaml:"namespace"`
-	Name       string `yaml:"name"`
-	APIVersion string `yaml:"apiVersion"`
-	Kind       string `yaml:"kind"`
+	ID         int               `yaml:"id"`
+	Namespace  string            `yaml:"namespace"`
+	Name       string            `yaml:"name"`
+	APIVersion string            `yaml:"apiVersion"`
+	Kind       string            `yaml:"kind"`
+	Labels     map[string]string `yaml:"labels"`
 }
 
 type ExitScenarioState struct {
@@ -40,8 +42,9 @@ type Condition struct {
 }
 
 type BasicConfiguration struct {
-	Namespace string `yaml:"namespace"`
-	Name      string `yaml:"name"`
+	Namespace string            `yaml:"namespace"`
+	Name      string            `yaml:"name"`
+	Labels    map[string]string `yaml:"labels"`
 }
 
 type BasicK8s interface {
