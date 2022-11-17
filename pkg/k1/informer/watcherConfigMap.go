@@ -16,7 +16,7 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			mObj := obj.(BasicK8s)
-			logger.Debug(fmt.Sprintf("New Pod updated:", mObj.GetName(), mObj.GetNamespace()))
+			logger.Debug(fmt.Sprintf("New Pod updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
 			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, conditions, matchConditions)
 
 		},
@@ -24,7 +24,7 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			newObj := new.(BasicK8s)
-			logger.Debug(fmt.Sprintf("Pod updated:", newObj.GetName(), newObj.GetNamespace()))
+			logger.Debug(fmt.Sprintf("Pod updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
 			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
