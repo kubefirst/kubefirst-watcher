@@ -50,5 +50,4 @@ type BasicConfiguration struct {
 type BasicK8s interface {
 	GetNamespace() string
 	GetName() string
-	GetLabels() map[string]string
 }

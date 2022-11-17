@@ -3,7 +3,7 @@ package informer
 import (
 	"fmt"
 
-	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -16,8 +16,8 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 		AddFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
-			mObj := obj.(BasicK8s)
-			labels := obj.(*corev1.Pod).GetLabels()
+			mObj := obj.(metav1.Object)
+			labels := mObj.GetLabels()
 			logger.Debug(fmt.Sprintf("New Pod updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
 			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
 
@@ -25,15 +25,15 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 		UpdateFunc: func(old, new interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
-			newObj := new.(BasicK8s)
-			labels := new.(BasicK8s).GetLabels()
+			newObj := new.(metav1.Object)
+			labels := newObj.GetLabels()
 			logger.Debug(fmt.Sprintf("Pod updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
 			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
-			mObj := obj.(BasicK8s)
+			mObj := obj.(metav1.Object)
 			logger.Debug(fmt.Sprintf("New Pod deleted from Store: %s", mObj.GetName()))
 		},
 	})
