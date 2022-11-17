@@ -3,6 +3,7 @@ package informer
 import (
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -16,16 +17,18 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			mObj := obj.(BasicK8s)
+			labels := obj.(*corev1.Pod).GetLabels()
 			logger.Debug(fmt.Sprintf("New Pod updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, conditions, matchConditions)
+			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
 
 		},
 		UpdateFunc: func(old, new interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			newObj := new.(BasicK8s)
+			labels := new.(BasicK8s).GetLabels()
 			logger.Debug(fmt.Sprintf("Pod updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, conditions, matchConditions)
+			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
@@ -37,7 +40,7 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 	informer.Run(stopper)
 }
 
-func checkMatchBasicConfigurationCondition(obj *BasicConfiguration, conditions []BasicConfigurationCondition, matchCondition chan Condition) {
+func checkMatchBasicConfigurationCondition(obj *BasicConfiguration, labels map[string]string, conditions []BasicConfigurationCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&
