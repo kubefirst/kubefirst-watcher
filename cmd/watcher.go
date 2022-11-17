@@ -23,8 +23,7 @@ var watcherCmd = &cobra.Command{
 		fmt.Println("watcher called")
 		logutils.InitializeLogger()
 		logutils.Logger.Info("Watcher ready to start")
-		informer.StartWatcher(configFile, logutils.Logger)
-		return nil
+		return informer.StartWatcher(configFile, logutils.Logger)
 	},
 }
 

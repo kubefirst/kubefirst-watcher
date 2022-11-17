@@ -18,7 +18,7 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 			// interface that allows us to get metadata easily
 			mObj := obj.(metav1.Object)
 			labels := mObj.GetLabels()
-			logger.Debug(fmt.Sprintf("New Pod updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
+			logger.Debug(fmt.Sprintf("New Basic updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
 			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
 
 		},
@@ -27,14 +27,14 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 			// interface that allows us to get metadata easily
 			newObj := new.(metav1.Object)
 			labels := newObj.GetLabels()
-			logger.Debug(fmt.Sprintf("Pod updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
+			logger.Debug(fmt.Sprintf("Basic updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
 			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			mObj := obj.(metav1.Object)
-			logger.Debug(fmt.Sprintf("New Pod deleted from Store: %s", mObj.GetName()))
+			logger.Debug(fmt.Sprintf("New Basic deleted from Store: %s", mObj.GetName()))
 		},
 	})
 	informer.Run(stopper)
