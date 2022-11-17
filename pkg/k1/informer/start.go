@@ -28,7 +28,6 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	logger.Info(fmt.Sprintf("%#v", exitScenarioState))
 	//Process Conditions into watchers
 	//Start Goals tracker
-
 	go checkConditions(exitScenarioState, interestingPods, stopper)
 	//Start Watchers
 	clientSet := getK8SConfig()
@@ -45,26 +44,11 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	}
 	if len(exitScenario.Services) > 0 {
 		go WatchBasic(exitScenario.Services, interestingPods, stopper, factory.Core().V1().Services().Informer())
-		//go WatchServices(exitScenario.Services, interestingPods, stopper)
 	}
-	/*
-		for k, _ := range exitScenarioState.Conditions {
-			conditionGVK := schema.FromAPIVersionAndKind(exitScenario.Conditions[k].APIVersion, exitScenario.Conditions[k].Kind)
-			switch conditionGVK {
-			case podGVK:
-				//go WatchPods(exitScenario.Conditions[k], interestingPods, stopper)
-				//		case "linux":
-				//			fmt.Println("Linux.")
-			default:
-				logger.Error(fmt.Sprintf("Error %#v", conditionGVK))
-				return fmt.Errorf("err - unkwon checker for GroupVersionKind")
-			}
-
-		}
-	*/
 	logger.Info("All conditions checkers started")
 	//Check Current State - to catch events pre-informers are started
 	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
+	logger.Error("Timeout - Fail to match conditions")
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
