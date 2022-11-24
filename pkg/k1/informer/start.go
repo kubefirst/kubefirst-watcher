@@ -14,7 +14,7 @@ import (
 // StartWatcher - starts watcher tooling
 var logger *zap.Logger
 
-func StartWatcher(configFile string, loggerIn *zap.Logger) error {
+func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) error {
 	logger = loggerIn
 	//Setup channels
 	interestingPods := make(chan Condition)
@@ -28,7 +28,7 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	logger.Info(fmt.Sprintf("%#v", exitScenarioState))
 	//Process Conditions into watchers
 	//Start Goals tracker
-	go checkConditions(exitScenarioState, interestingPods, stopper)
+	go checkConditions(exitScenarioState, ownerFile, interestingPods, stopper)
 	//Start Watchers
 	clientSet := getK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
@@ -52,7 +52,7 @@ func StartWatcher(configFile string, loggerIn *zap.Logger) error {
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
-func checkConditions(goal *ExitScenarioState, in <-chan Condition, stopper chan struct{}) {
+func checkConditions(goal *ExitScenarioState, ownerFile string, in <-chan Condition, stopper chan struct{}) {
 	logger.Debug("Started Listener")
 	logger.Info(fmt.Sprintf("%#v", goal))
 	pendingConditions := len(goal.Conditions)
@@ -77,7 +77,7 @@ func checkConditions(goal *ExitScenarioState, in <-chan Condition, stopper chan 
 		if pendingConditions < 1 {
 			logger.Debug("All required objects found, ready to close waiting channels")
 			logger.Debug(fmt.Sprintf("%#v", goal.Conditions))
-			UpdateStatus(&WatcherConfig{})
+			UpdateStatus(ownerFile)
 			os.Exit(goal.Exit)
 		}
 	}
