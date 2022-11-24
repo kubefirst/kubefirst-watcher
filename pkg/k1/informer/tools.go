@@ -54,6 +54,7 @@ func UpdateStatus(watcherConfig *WatcherConfig) error {
 	myPatch := `{"status":{"status":"change"}}`
 	object, err := clientSet.RESTClient().
 		Patch(api.MergePatchType).
+		SubResource("status").
 		Namespace("default").
 		Resource("watcher").
 		Name("watcher-sample-01").
