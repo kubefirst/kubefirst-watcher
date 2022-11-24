@@ -61,6 +61,7 @@ func UpdateStatus(ownerFile string) error {
 		logger.Info(fmt.Sprintf("Error processing owner file   #%v ", err))
 		return err
 	}
+	logger.Debug(fmt.Sprintf("Watcher Config: #%v ", watcherConfig))
 	clientSet := getK8SConfig()
 	myPatch := `{"status":{"status":"change"}}`
 	_, err = clientSet.RESTClient().
@@ -73,7 +74,7 @@ func UpdateStatus(ownerFile string) error {
 		Body([]byte(myPatch)).
 		DoRaw(context.TODO())
 	if err != nil {
-		logger.Info(fmt.Sprintf("Error updateding CRD   #%v ", err))
+		logger.Info(fmt.Sprintf("Error updating CRD   #%v ", err))
 		return err
 	}
 	logger.Info(fmt.Sprintf("Update status:  %#v ", watcherConfig))
