@@ -52,7 +52,7 @@ type PatchObject struct {
 func UpdateStatus(watcherConfig *WatcherConfig) error {
 	clientSet := getK8SConfig()
 	myPatch := `{"status":{"status":"change"}}`
-	clientSet.RESTClient().
+	object, err := clientSet.RESTClient().
 		Patch(api.MergePatchType).
 		Namespace("default").
 		Resource("watcher").
@@ -60,6 +60,8 @@ func UpdateStatus(watcherConfig *WatcherConfig) error {
 		Body([]byte(myPatch)).
 		Do(context.TODO()).
 		Get()
+	logger.Info(fmt.Sprintf("Update err:  %#v ", object))
+	logger.Info(fmt.Sprintf("Update err:  %#v ", err))
 	logger.Info(fmt.Sprintf("Update status:  %#v ", watcherConfig))
 	return nil
 }
