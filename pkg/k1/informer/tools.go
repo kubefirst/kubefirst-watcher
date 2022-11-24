@@ -51,7 +51,7 @@ type PatchObject struct {
 	Value string `json:"value"`
 }
 
-func UpdateStatus(ownerFile string) error {
+func UpdateStatus(ownerFile string, status string) error {
 	if ownerFile == "" {
 		logger.Info(fmt.Sprintf("No owner file provided, skip CRD update.   #%s ", ownerFile))
 		return nil
@@ -63,7 +63,8 @@ func UpdateStatus(ownerFile string) error {
 	}
 	logger.Debug(fmt.Sprintf("Watcher Config: #%v ", watcherConfig))
 	clientSet := getK8SConfig()
-	myPatch := `{"status":{"status":"change"}}`
+	myPatch := fmt.Sprintf(`{"status":{"status":"%s"}}`, status)
+	logger.Debug(fmt.Sprintf("Watcher Patch: #%v ", myPatch))
 	_, err = clientSet.RESTClient().
 		Patch(api.MergePatchType).
 		AbsPath("/apis/" + watcherConfig.APIVersion).

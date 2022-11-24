@@ -14,6 +14,11 @@ import (
 // StartWatcher - starts watcher tooling
 var logger *zap.Logger
 
+const (
+	StatusCompleted string = "Satisfied"
+	StatusTimeout   string = "Timeout"
+)
+
 func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) error {
 	logger = loggerIn
 	//Setup channels
@@ -49,6 +54,7 @@ func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) err
 	//Check Current State - to catch events pre-informers are started
 	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
 	logger.Error("Timeout - Fail to match conditions")
+	UpdateStatus(ownerFile, StatusTimeout)
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
@@ -77,7 +83,7 @@ func checkConditions(goal *ExitScenarioState, ownerFile string, in <-chan Condit
 		if pendingConditions < 1 {
 			logger.Debug("All required objects found, ready to close waiting channels")
 			logger.Debug(fmt.Sprintf("%#v", goal.Conditions))
-			UpdateStatus(ownerFile)
+			UpdateStatus(ownerFile, StatusCompleted)
 			os.Exit(goal.Exit)
 		}
 	}
