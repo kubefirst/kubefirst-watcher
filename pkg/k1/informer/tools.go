@@ -56,7 +56,7 @@ func UpdateStatus(watcherConfig *WatcherConfig) error {
 		Patch(api.MergePatchType).
 		SubResource("status").
 		Namespace("default").
-		Resource("watchers").
+		Resource("watcher").
 		Name("watcher-sample-01").
 		Body([]byte(myPatch)).
 		Do(context.TODO()).
