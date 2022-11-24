@@ -54,13 +54,14 @@ func UpdateStatus(watcherConfig *WatcherConfig) error {
 	myPatch := `{"status":{"status":"change"}}`
 	object, err := clientSet.RESTClient().
 		Patch(api.MergePatchType).
+		AbsPath("/apis/k1.kubefirst.io/v1beta1").
 		SubResource("status").
 		Namespace("default").
 		Resource("watchers").
 		Name("watcher-sample-01").
 		Body([]byte(myPatch)).
-		Do(context.TODO()).
-		Get()
+		DoRaw(context.TODO())
+
 	logger.Info(fmt.Sprintf("Update err:  %#v ", object))
 	logger.Info(fmt.Sprintf("Update err:  %#v ", err))
 	logger.Info(fmt.Sprintf("Update status:  %#v ", watcherConfig))
