@@ -1,10 +1,12 @@
 package informer
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
 	"github.com/thoas/go-funk"
+	api "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -40,3 +42,38 @@ func IsMapPresent(sourceMap map[string]string, subsetMap map[string]string) (boo
 
 	return match, nil
 }
+
+type PatchObject struct {
+	Op    string `json:"op"`
+	Path  string `json:"path"`
+	Value string `json:"value"`
+}
+
+func UpdateStatus(watcherConfig *WatcherConfig) error {
+	clientSet := getK8SConfig()
+	myPatch := `{"status":{"status":"change"}}`
+	object, err := clientSet.RESTClient().
+		Patch(api.MergePatchType).
+		AbsPath("/apis/k1.kubefirst.io/v1beta1").
+		SubResource("status").
+		Namespace("default").
+		Resource("watchers").
+		Name("watcher-sample-01").
+		Body([]byte(myPatch)).
+		DoRaw(context.TODO())
+
+	logger.Info(fmt.Sprintf("Update err:  %#v ", object))
+	logger.Info(fmt.Sprintf("Update err:  %#v ", err))
+	logger.Info(fmt.Sprintf("Update status:  %#v ", watcherConfig))
+	return nil
+}
+
+/*
+result, err6 := tprclient.Patch(api.JSONPatchType).
+        Namespace(api.NamespaceDefault).
+        Resource("pgupgrades").
+        Name("junk").
+        Body(patchBytes).
+        Do().
+        Get()
+*/
