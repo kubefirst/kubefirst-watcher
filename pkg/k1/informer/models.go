@@ -1,5 +1,13 @@
 package informer
 
+type WatcherConfig struct {
+	CrdName      string `yaml:"crdname,omitempty"`
+	CrdNamespace string `yaml:"crdnamespace,omitempty"`
+	Kind         string `yaml:"kind,omitempty"`
+	APIVersion   string `yaml:"apiVersion,omitempty"`
+	Group        string `yaml:"group,omitempty"`
+}
+
 type ExitScenario struct {
 	Exit       int                           `yaml:"exit"`
 	Timeout    int                           `yaml:"timeout"`

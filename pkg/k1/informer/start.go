@@ -77,6 +77,7 @@ func checkConditions(goal *ExitScenarioState, in <-chan Condition, stopper chan 
 		if pendingConditions < 1 {
 			logger.Debug("All required objects found, ready to close waiting channels")
 			logger.Debug(fmt.Sprintf("%#v", goal.Conditions))
+			UpdateStatus(&WatcherConfig{})
 			os.Exit(goal.Exit)
 		}
 	}
