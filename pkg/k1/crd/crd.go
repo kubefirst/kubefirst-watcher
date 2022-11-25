@@ -2,6 +2,7 @@ package crd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/6za/k1-watcher/pkg/k1/k8s"
@@ -43,7 +44,7 @@ func (client *CRDClient) UpdateStatus(status string) error {
 	return nil
 }
 
-func (client *CRDClient) GetCRD() error {
+func (client *CRDClient) GetCRD() (Watcher, error) {
 	client.Logger.Debug(fmt.Sprintf("Watcher Config: #%v ", client.CRD))
 	clientSet := k8s.GetK8SConfig()
 	object, err := clientSet.RESTClient().
@@ -55,9 +56,16 @@ func (client *CRDClient) GetCRD() error {
 		DoRaw(context.TODO())
 	client.Logger.Info(fmt.Sprintf("Get CRD   #%v ", string(object)))
 	if err != nil {
-		client.Logger.Info(fmt.Sprintf("Error updating CRD   #%v ", err))
-		return err
+		client.Logger.Info(fmt.Sprintf("Error loading CRD   #%v ", err))
+		return Watcher{}, err
+	}
+	watcher := Watcher{}
+	err = json.Unmarshal(object, &watcher)
+	client.Logger.Info(fmt.Sprintf("Watcher   #%v ", watcher))
+	if err != nil {
+		client.Logger.Info(fmt.Sprintf("Error loading CRD   #%v ", err))
+		return Watcher{}, err
 	}
 	client.Logger.Info(fmt.Sprintf("Update status:  %#v ", client.CRD))
-	return nil
+	return watcher, nil
 }
