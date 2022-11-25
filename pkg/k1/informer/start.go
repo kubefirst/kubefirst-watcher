@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/6za/k1-watcher/pkg/k1/crd"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/informers"
@@ -18,6 +19,11 @@ const (
 	StatusCompleted string = "Satisfied"
 	StatusTimeout   string = "Timeout"
 )
+
+func StartCRDWatcher(clientCrd *crd.CRDClient, loggerIn *zap.Logger) error {
+	clientCrd.GetCRD()
+	return nil
+}
 
 func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) error {
 	logger = loggerIn
