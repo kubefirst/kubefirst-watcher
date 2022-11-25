@@ -4,7 +4,7 @@ type WatcherConfig struct {
 	CrdName      string `yaml:"crdname,omitempty"`
 	CrdNamespace string `yaml:"crdnamespace,omitempty"`
 	Kind         string `yaml:"kind,omitempty"`
-	APIVersion   string `yaml:"apiVersion,omitempty"`
+	APIVersion   string `yaml:"apiversion,omitempty"`
 	Group        string `yaml:"group,omitempty"`
 }
 

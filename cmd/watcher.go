@@ -13,6 +13,7 @@ import (
 )
 
 var configFile string
+var ownerFile string
 
 // watcherCmd represents the watcher command
 var watcherCmd = &cobra.Command{
@@ -23,12 +24,13 @@ var watcherCmd = &cobra.Command{
 		fmt.Println("watcher called")
 		logutils.InitializeLogger()
 		logutils.Logger.Info("Watcher ready to start")
-		return informer.StartWatcher(configFile, logutils.Logger)
+		return informer.StartWatcher(configFile, ownerFile, logutils.Logger)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(watcherCmd)
 
-	watcherCmd.Flags().StringVarP(&configFile, "config-file", "c", "", "Provide a yaml witth watcher settings")
+	watcherCmd.Flags().StringVarP(&configFile, "config-file", "c", "", "Provide a yaml with watcher settings")
+	watcherCmd.Flags().StringVarP(&ownerFile, "owner-file", "o", "", "Provide a yaml with CRD owner refernece")
 }

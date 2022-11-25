@@ -3,9 +3,11 @@ package informer
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 
 	"github.com/thoas/go-funk"
+	"gopkg.in/yaml.v2"
 	api "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -49,31 +51,50 @@ type PatchObject struct {
 	Value string `json:"value"`
 }
 
-func UpdateStatus(watcherConfig *WatcherConfig) error {
+func UpdateStatus(ownerFile string, status string) error {
+	if ownerFile == "" {
+		logger.Info(fmt.Sprintf("No owner file provided, skip CRD update.   #%s ", ownerFile))
+		return nil
+	}
+	watcherConfig, err := loadWatcherConfig(ownerFile)
+	if err != nil {
+		logger.Info(fmt.Sprintf("Error processing owner file   #%v ", err))
+		return err
+	}
+	logger.Debug(fmt.Sprintf("Watcher Config: #%v ", watcherConfig))
 	clientSet := getK8SConfig()
-	myPatch := `{"status":{"status":"change"}}`
-	object, err := clientSet.RESTClient().
+	myPatch := fmt.Sprintf(`{"status":{"status":"%s"}}`, status)
+	logger.Debug(fmt.Sprintf("Watcher Patch: #%v ", myPatch))
+	_, err = clientSet.RESTClient().
 		Patch(api.MergePatchType).
-		AbsPath("/apis/k1.kubefirst.io/v1beta1").
+		AbsPath("/apis/" + watcherConfig.APIVersion).
 		SubResource("status").
-		Namespace("default").
+		Namespace(watcherConfig.CrdNamespace).
 		Resource("watchers").
-		Name("watcher-sample-01").
+		Name(watcherConfig.CrdName).
 		Body([]byte(myPatch)).
 		DoRaw(context.TODO())
-
-	logger.Info(fmt.Sprintf("Update err:  %#v ", object))
-	logger.Info(fmt.Sprintf("Update err:  %#v ", err))
+	if err != nil {
+		logger.Info(fmt.Sprintf("Error updating CRD   #%v ", err))
+		return err
+	}
 	logger.Info(fmt.Sprintf("Update status:  %#v ", watcherConfig))
 	return nil
 }
 
-/*
-result, err6 := tprclient.Patch(api.JSONPatchType).
-        Namespace(api.NamespaceDefault).
-        Resource("pgupgrades").
-        Name("junk").
-        Body(patchBytes).
-        Do().
-        Get()
-*/
+func loadWatcherConfig(file string) (*WatcherConfig, error) {
+	watcherConfig := &WatcherConfig{}
+	logger.Debug("Loading config file:" + file)
+	yamlFile, err := ioutil.ReadFile(file)
+	if err != nil {
+		logger.Info(fmt.Sprintf("yamlFile.Get err   #%v ", err))
+		return nil, err
+	}
+	err = yaml.Unmarshal(yamlFile, watcherConfig)
+	if err != nil {
+		logger.Info(fmt.Sprintf("Unmarshal: %v", err))
+		return nil, err
+	}
+
+	return watcherConfig, nil
+}
