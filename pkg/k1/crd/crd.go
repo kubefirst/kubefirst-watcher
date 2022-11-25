@@ -22,6 +22,7 @@ type CRDClient struct {
 	Logger *zap.Logger
 }
 
+// UpdateStatus update Status Message on Watcher Status CRD
 func (client *CRDClient) UpdateStatus(status string) error {
 	client.Logger.Debug(fmt.Sprintf("Watcher Config: #%v ", client.CRD))
 	clientSet := k8s.GetK8SConfig()
@@ -44,6 +45,7 @@ func (client *CRDClient) UpdateStatus(status string) error {
 	return nil
 }
 
+// GetCRD returns the Watcher CRD Object, used to feed configs
 func (client *CRDClient) GetCRD() (Watcher, error) {
 	client.Logger.Debug(fmt.Sprintf("Watcher Config: #%v ", client.CRD))
 	clientSet := k8s.GetK8SConfig()
