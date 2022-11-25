@@ -3,13 +3,14 @@ package informer
 import (
 	"fmt"
 
+	"github.com/6za/k1-watcher/pkg/k1/crd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
 // TODO: Make this more generic
 
-func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
+func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -40,7 +41,7 @@ func WatchBasic(conditions []BasicConfigurationCondition, matchConditions chan C
 	informer.Run(stopper)
 }
 
-func checkMatchBasicConfigurationCondition(obj *BasicConfiguration, labels map[string]string, conditions []BasicConfigurationCondition, matchCondition chan Condition) {
+func checkMatchBasicConfigurationCondition(obj *BasicConfiguration, labels map[string]string, conditions []crd.BasicConfigurationCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&

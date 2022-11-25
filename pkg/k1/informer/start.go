@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/6za/k1-watcher/pkg/k1/crd"
+	"github.com/6za/k1-watcher/pkg/k1/k8s"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/informers"
@@ -19,7 +21,37 @@ const (
 	StatusTimeout   string = "Timeout"
 )
 
+func StartCRDWatcher(clientCrd *crd.CRDClient, loggerIn *zap.Logger) error {
+	logger = clientCrd.Logger
+	myCRD, err := clientCrd.GetCRD()
+	if err != nil {
+		return fmt.Errorf("Error getting CRD")
+	}
+	//Setup channels
+	interestingPods := make(chan Condition)
+	defer close(interestingPods)
+	stopper := make(chan struct{})
+	defer close(stopper)
+
+	//Process Conditions into goals
+	exitScenario, exitScenarioState, _ := loadExitScenarioFromCRD(myCRD.Spec)
+	logger.Info(fmt.Sprintf("%#v", exitScenario))
+	logger.Info(fmt.Sprintf("%#v", exitScenarioState))
+	//Process Conditions into watchers
+	//Start Goals tracker
+	go checkConditions(exitScenarioState, clientCrd, interestingPods, stopper)
+	//Start Watchers
+	//go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
+	startWatchers(exitScenario, interestingPods, stopper)
+	//Check Current State - to catch events pre-informers are started
+	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
+	logger.Error("Timeout - Fail to match conditions")
+	clientCrd.UpdateStatus(StatusTimeout)
+	return fmt.Errorf("timeout - Failed to meet exit condition")
+}
+
 func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) error {
+	return fmt.Errorf("Disabled mode")
 	logger = loggerIn
 	//Setup channels
 	interestingPods := make(chan Condition)
@@ -33,9 +65,19 @@ func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) err
 	logger.Info(fmt.Sprintf("%#v", exitScenarioState))
 	//Process Conditions into watchers
 	//Start Goals tracker
-	go checkConditions(exitScenarioState, ownerFile, interestingPods, stopper)
+	//go checkConditions(exitScenarioState, ownerFile, interestingPods, stopper)
 	//Start Watchers
-	clientSet := getK8SConfig()
+	//go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
+	startWatchers(exitScenario, interestingPods, stopper)
+	//Check Current State - to catch events pre-informers are started
+	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
+	logger.Error("Timeout - Fail to match conditions")
+	UpdateStatus(ownerFile, StatusTimeout)
+	return fmt.Errorf("timeout - Failed to meet exit condition")
+}
+
+func startWatchers(exitScenario *ExitScenario, interestingPods chan Condition, stopper chan struct{}) {
+	clientSet := k8s.GetK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
 	if len(exitScenario.Pods) > 0 {
 		go WatchPods(exitScenario.Pods, interestingPods, stopper)
@@ -45,20 +87,15 @@ func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) err
 	}
 	if len(exitScenario.Secrets) > 0 {
 		go WatchBasic(exitScenario.Secrets, interestingPods, stopper, factory.Core().V1().Secrets().Informer())
-		//go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
+
 	}
 	if len(exitScenario.Services) > 0 {
 		go WatchBasic(exitScenario.Services, interestingPods, stopper, factory.Core().V1().Services().Informer())
 	}
 	logger.Info("All conditions checkers started")
-	//Check Current State - to catch events pre-informers are started
-	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
-	logger.Error("Timeout - Fail to match conditions")
-	UpdateStatus(ownerFile, StatusTimeout)
-	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
-func checkConditions(goal *ExitScenarioState, ownerFile string, in <-chan Condition, stopper chan struct{}) {
+func checkConditions(goal *ExitScenarioState, clientCrd *crd.CRDClient, in <-chan Condition, stopper chan struct{}) {
 	logger.Debug("Started Listener")
 	logger.Info(fmt.Sprintf("%#v", goal))
 	pendingConditions := len(goal.Conditions)
@@ -83,10 +120,27 @@ func checkConditions(goal *ExitScenarioState, ownerFile string, in <-chan Condit
 		if pendingConditions < 1 {
 			logger.Debug("All required objects found, ready to close waiting channels")
 			logger.Debug(fmt.Sprintf("%#v", goal.Conditions))
-			UpdateStatus(ownerFile, StatusCompleted)
-			os.Exit(goal.Exit)
+			clientCrd.UpdateStatus(StatusCompleted)
+			os.Exit(int(goal.Exit))
 		}
 	}
+}
+func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*ExitScenario, *ExitScenarioState, error) {
+	exitScenario := &ExitScenario{
+		Timeout:    watcherSpec.Timeout,
+		Exit:       watcherSpec.Exit,
+		ConfigMaps: watcherSpec.ConfigMaps,
+		Secrets:    watcherSpec.Secrets,
+		Services:   watcherSpec.Services,
+	}
+
+	exitScenarioState, err := processExitScenario(exitScenario)
+	if err != nil {
+		logger.Info(fmt.Sprintf("Error processing Scenario State: %v", err))
+		return nil, nil, err
+	}
+	logger.Info(fmt.Sprintf("Log processing exitScenarioState: %v", exitScenarioState))
+	return exitScenario, exitScenarioState, nil
 }
 
 func loadExitScenario(file string) (*ExitScenario, *ExitScenarioState, error) {
