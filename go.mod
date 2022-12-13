@@ -1,4 +1,4 @@
-module github.com/6za/k1-watcher
+module github.com/kubefirst/kubefirst-watcher
 
 go 1.18
 

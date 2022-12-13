@@ -7,9 +7,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/6za/k1-watcher/cmd/internal/logutils"
-	"github.com/6za/k1-watcher/pkg/k1/crd"
-	"github.com/6za/k1-watcher/pkg/k1/informer"
+	"github.com/kubefirst/kubefirst-watcher/cmd/internal/logutils"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/informer"
 	"github.com/spf13/cobra"
 )
 

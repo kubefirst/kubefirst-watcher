@@ -17,5 +17,5 @@ RUN go mod download
 RUN go build .
 
 USER root
-RUN  mv ./k1-watcher /usr/local/bin/ && chmod 777 /usr/local/bin/k1-watcher
+RUN  mv ./kubefirst-watcher /usr/local/bin/ && chmod 777 /usr/local/bin/kubefirst-watcher
 USER developer
