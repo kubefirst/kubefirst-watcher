@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/6za/k1-watcher/pkg/k1/crd"
-	"github.com/6za/k1-watcher/pkg/k1/k8s"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/k8s"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/informers"

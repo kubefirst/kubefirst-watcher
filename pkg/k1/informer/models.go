@@ -1,6 +1,6 @@
 package informer
 
-import "github.com/6za/k1-watcher/pkg/k1/crd"
+import "github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 
 type WatcherConfig struct {
 	CrdName      string `yaml:"crdname,omitempty"`

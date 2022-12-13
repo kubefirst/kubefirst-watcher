@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/6za/k1-watcher/pkg/shell"
+	"github.com/kubefirst/kubefirst-watcher/pkg/shell"
 	"go.uber.org/zap"
 )
 

@@ -3,7 +3,7 @@ package informer
 import (
 	"fmt"
 
-	"github.com/6za/k1-watcher/pkg/k1/crd"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
 )
