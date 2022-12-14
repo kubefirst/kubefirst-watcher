@@ -126,21 +126,14 @@ func checkConditions(goal *ExitScenarioState, clientCrd *crd.CRDClient, in <-cha
 	}
 }
 func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*crd.WatcherSpec, *ExitScenarioState, error) {
-	exitScenario := &crd.WatcherSpec{
-		Timeout:    watcherSpec.Timeout,
-		Exit:       watcherSpec.Exit,
-		ConfigMaps: watcherSpec.ConfigMaps,
-		Secrets:    watcherSpec.Secrets,
-		Services:   watcherSpec.Services,
-	}
 
-	exitScenarioState, err := processExitScenario(exitScenario)
+	exitScenarioState, err := processExitScenario(&watcherSpec)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Error processing Scenario State: %v", err))
 		return nil, nil, err
 	}
 	logger.Info(fmt.Sprintf("Log processing exitScenarioState: %v", exitScenarioState))
-	return exitScenario, exitScenarioState, nil
+	return &watcherSpec, exitScenarioState, nil
 }
 
 func loadExitScenario(file string) (*crd.WatcherSpec, *ExitScenarioState, error) {
@@ -191,6 +184,11 @@ func processExitScenario(exitScenario *crd.WatcherSpec) (*ExitScenarioState, err
 	for k, _ := range exitScenario.Services {
 		exitScenario.Services[k].ID = id
 		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Services[k])})
+		id++
+	}
+	for k, _ := range exitScenario.Jobs {
+		exitScenario.Jobs[k].ID = id
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Jobs[k])})
 		id++
 	}
 	return exitScenarioState, nil
