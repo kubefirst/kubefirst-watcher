@@ -76,7 +76,7 @@ func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) err
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
-func startWatchers(exitScenario *ExitScenario, interestingPods chan Condition, stopper chan struct{}) {
+func startWatchers(exitScenario *crd.WatcherSpec, interestingPods chan Condition, stopper chan struct{}) {
 	clientSet := k8s.GetK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
 	if len(exitScenario.Pods) > 0 {
@@ -125,8 +125,8 @@ func checkConditions(goal *ExitScenarioState, clientCrd *crd.CRDClient, in <-cha
 		}
 	}
 }
-func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*ExitScenario, *ExitScenarioState, error) {
-	exitScenario := &ExitScenario{
+func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*crd.WatcherSpec, *ExitScenarioState, error) {
+	exitScenario := &crd.WatcherSpec{
 		Timeout:    watcherSpec.Timeout,
 		Exit:       watcherSpec.Exit,
 		ConfigMaps: watcherSpec.ConfigMaps,
@@ -143,8 +143,8 @@ func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*ExitScenario, *ExitS
 	return exitScenario, exitScenarioState, nil
 }
 
-func loadExitScenario(file string) (*ExitScenario, *ExitScenarioState, error) {
-	exitScenario := &ExitScenario{}
+func loadExitScenario(file string) (*crd.WatcherSpec, *ExitScenarioState, error) {
+	exitScenario := &crd.WatcherSpec{}
 	logger.Debug("Loading config file:" + file)
 	yamlFile, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -166,7 +166,7 @@ func loadExitScenario(file string) (*ExitScenario, *ExitScenarioState, error) {
 	return exitScenario, exitScenarioState, nil
 }
 
-func processExitScenario(exitScenario *ExitScenario) (*ExitScenarioState, error) {
+func processExitScenario(exitScenario *crd.WatcherSpec) (*ExitScenarioState, error) {
 	exitScenarioState := &ExitScenarioState{}
 	exitScenarioState.Exit = exitScenario.Exit
 	exitScenarioState.Timeout = exitScenario.Timeout
