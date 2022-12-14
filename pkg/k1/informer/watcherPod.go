@@ -3,12 +3,13 @@ package informer
 import (
 	"fmt"
 
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchPods(conditions []PodCondition, matchConditions chan Condition, stopper chan struct{}) {
+func WatchPods(conditions []crd.PodCondition, matchConditions chan Condition, stopper chan struct{}) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 	clientSet := getK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
@@ -43,7 +44,7 @@ func WatchPods(conditions []PodCondition, matchConditions chan Condition, stoppe
 	informer.Run(stopper)
 }
 
-func checkMatchConditionPod(obj *corev1.Pod, labels map[string]string, conditions []PodCondition, matchCondition chan Condition) {
+func checkMatchConditionPod(obj *corev1.Pod, labels map[string]string, conditions []crd.PodCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&

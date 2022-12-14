@@ -20,7 +20,7 @@ func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions ch
 			mObj := obj.(metav1.Object)
 			labels := mObj.GetLabels()
 			logger.Debug(fmt.Sprintf("New Basic updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
+			checkMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
 
 		},
 		UpdateFunc: func(old, new interface{}) {
@@ -29,7 +29,7 @@ func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions ch
 			newObj := new.(metav1.Object)
 			labels := newObj.GetLabels()
 			logger.Debug(fmt.Sprintf("Basic updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&BasicConfiguration{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
+			checkMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
@@ -41,7 +41,7 @@ func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions ch
 	informer.Run(stopper)
 }
 
-func checkMatchBasicConfigurationCondition(obj *BasicConfiguration, labels map[string]string, conditions []crd.BasicConfigurationCondition, matchCondition chan Condition) {
+func checkMatchBasicConfigurationCondition(obj *crd.BasicConfigurationCondition, labels map[string]string, conditions []crd.BasicConfigurationCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&
