@@ -76,22 +76,26 @@ func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) err
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
-func startWatchers(exitScenario *crd.WatcherSpec, interestingPods chan Condition, stopper chan struct{}) {
+func startWatchers(exitScenario *crd.WatcherSpec, interestingEvents chan Condition, stopper chan struct{}) {
 	clientSet := k8s.GetK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
 	if len(exitScenario.Pods) > 0 {
-		go WatchPods(exitScenario.Pods, interestingPods, stopper)
+		go WatchPods(exitScenario.Pods, interestingEvents, stopper, factory.Core().V1().Pods().Informer())
 	}
 	if len(exitScenario.ConfigMaps) > 0 {
-		go WatchBasic(exitScenario.ConfigMaps, interestingPods, stopper, factory.Core().V1().ConfigMaps().Informer())
+		go WatchBasic(exitScenario.ConfigMaps, interestingEvents, stopper, factory.Core().V1().ConfigMaps().Informer())
 	}
 	if len(exitScenario.Secrets) > 0 {
-		go WatchBasic(exitScenario.Secrets, interestingPods, stopper, factory.Core().V1().Secrets().Informer())
+		go WatchBasic(exitScenario.Secrets, interestingEvents, stopper, factory.Core().V1().Secrets().Informer())
 
 	}
 	if len(exitScenario.Services) > 0 {
-		go WatchBasic(exitScenario.Services, interestingPods, stopper, factory.Core().V1().Services().Informer())
+		go WatchBasic(exitScenario.Services, interestingEvents, stopper, factory.Core().V1().Services().Informer())
 	}
+	if len(exitScenario.Jobs) > 0 {
+		go WatchJobs(exitScenario.Jobs, interestingEvents, stopper, factory.Batch().V1().Jobs().Informer())
+	}
+
 	logger.Info("All conditions checkers started")
 }
 

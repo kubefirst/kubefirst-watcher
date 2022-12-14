@@ -6,16 +6,11 @@ import (
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, stopper chan struct{}) {
+func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
-	clientSet := getK8SConfig()
-	factory := informers.NewSharedInformerFactory(clientSet, 0)
-	informer := factory.Batch().V1().Jobs().Informer()
-
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object

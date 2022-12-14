@@ -5,15 +5,11 @@ import (
 
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchPods(conditions []crd.PodCondition, matchConditions chan Condition, stopper chan struct{}) {
+func WatchPods(conditions []crd.PodCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
-	clientSet := getK8SConfig()
-	factory := informers.NewSharedInformerFactory(clientSet, 0)
-	informer := factory.Core().V1().Pods().Informer()
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
