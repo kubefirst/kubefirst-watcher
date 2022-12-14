@@ -5,7 +5,6 @@ import (
 
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -16,9 +15,9 @@ func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, st
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			mObj := obj.(*batchv1.Job)
-			labels := obj.(*corev1.Pod).Labels
+			labels := obj.(*batchv1.Job).Labels
 
-			logger.Debug(fmt.Sprintf("New Pod updated: %s, %s, %s", mObj.GetName(), mObj.GetNamespace(), mObj.Status.Succeeded))
+			logger.Debug(fmt.Sprintf("New Job updated: %s, %s, %s", mObj.GetName(), mObj.GetNamespace(), mObj.Status.Succeeded))
 			checkMatchConditionJob(mObj, labels, conditions, matchConditions)
 
 		},
@@ -26,15 +25,15 @@ func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, st
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			newObj := new.(*batchv1.Job)
-			labels := new.(*corev1.Pod).Labels
-			logger.Debug(fmt.Sprintf("Pod updated: %s, %s, %s", newObj.GetName(), newObj.GetNamespace(), newObj.Status.Succeeded))
+			labels := new.(*batchv1.Job).Labels
+			logger.Debug(fmt.Sprintf("Job updated: %s, %s, %s", newObj.GetName(), newObj.GetNamespace(), newObj.Status.Succeeded))
 			checkMatchConditionJob(newObj, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
 			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
 			// interface that allows us to get metadata easily
 			mObj := obj.(*batchv1.Job)
-			logger.Debug(fmt.Sprintf("New Pod deleted from Store: %s", mObj.GetName()))
+			logger.Debug(fmt.Sprintf("New Job deleted from Store: %s", mObj.GetName()))
 		},
 	})
 	informer.Run(stopper)
