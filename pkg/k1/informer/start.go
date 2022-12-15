@@ -76,22 +76,26 @@ func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) err
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
-func startWatchers(exitScenario *crd.WatcherSpec, interestingPods chan Condition, stopper chan struct{}) {
+func startWatchers(exitScenario *crd.WatcherSpec, interestingEvents chan Condition, stopper chan struct{}) {
 	clientSet := k8s.GetK8SConfig()
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
 	if len(exitScenario.Pods) > 0 {
-		go WatchPods(exitScenario.Pods, interestingPods, stopper)
+		go WatchPods(exitScenario.Pods, interestingEvents, stopper, factory.Core().V1().Pods().Informer())
 	}
 	if len(exitScenario.ConfigMaps) > 0 {
-		go WatchBasic(exitScenario.ConfigMaps, interestingPods, stopper, factory.Core().V1().ConfigMaps().Informer())
+		go WatchBasic(exitScenario.ConfigMaps, interestingEvents, stopper, factory.Core().V1().ConfigMaps().Informer())
 	}
 	if len(exitScenario.Secrets) > 0 {
-		go WatchBasic(exitScenario.Secrets, interestingPods, stopper, factory.Core().V1().Secrets().Informer())
+		go WatchBasic(exitScenario.Secrets, interestingEvents, stopper, factory.Core().V1().Secrets().Informer())
 
 	}
 	if len(exitScenario.Services) > 0 {
-		go WatchBasic(exitScenario.Services, interestingPods, stopper, factory.Core().V1().Services().Informer())
+		go WatchBasic(exitScenario.Services, interestingEvents, stopper, factory.Core().V1().Services().Informer())
 	}
+	if len(exitScenario.Jobs) > 0 {
+		go WatchJobs(exitScenario.Jobs, interestingEvents, stopper, factory.Batch().V1().Jobs().Informer())
+	}
+
 	logger.Info("All conditions checkers started")
 }
 
@@ -126,21 +130,14 @@ func checkConditions(goal *ExitScenarioState, clientCrd *crd.CRDClient, in <-cha
 	}
 }
 func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*crd.WatcherSpec, *ExitScenarioState, error) {
-	exitScenario := &crd.WatcherSpec{
-		Timeout:    watcherSpec.Timeout,
-		Exit:       watcherSpec.Exit,
-		ConfigMaps: watcherSpec.ConfigMaps,
-		Secrets:    watcherSpec.Secrets,
-		Services:   watcherSpec.Services,
-	}
 
-	exitScenarioState, err := processExitScenario(exitScenario)
+	exitScenarioState, err := processExitScenario(&watcherSpec)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Error processing Scenario State: %v", err))
 		return nil, nil, err
 	}
 	logger.Info(fmt.Sprintf("Log processing exitScenarioState: %v", exitScenarioState))
-	return exitScenario, exitScenarioState, nil
+	return &watcherSpec, exitScenarioState, nil
 }
 
 func loadExitScenario(file string) (*crd.WatcherSpec, *ExitScenarioState, error) {
@@ -191,6 +188,11 @@ func processExitScenario(exitScenario *crd.WatcherSpec) (*ExitScenarioState, err
 	for k, _ := range exitScenario.Services {
 		exitScenario.Services[k].ID = id
 		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Services[k])})
+		id++
+	}
+	for k, _ := range exitScenario.Jobs {
+		exitScenario.Jobs[k].ID = id
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Jobs[k])})
 		id++
 	}
 	return exitScenarioState, nil
