@@ -2,6 +2,7 @@ package informer
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	batchv1 "k8s.io/api/batch/v1"
@@ -12,26 +13,20 @@ func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, st
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			mObj := obj.(*batchv1.Job)
 			labels := obj.(*batchv1.Job).Labels
 
-			logger.Debug(fmt.Sprintf("New Job updated: %s, %s, %s", mObj.GetName(), mObj.GetNamespace(), mObj.Status.Succeeded))
-			checkMatchConditionJob(mObj, labels, conditions, matchConditions)
+			logger.Debug(fmt.Sprintf("New Job updated: %s, %s, %d", mObj.GetName(), mObj.GetNamespace(), mObj.Status.Succeeded))
+			CheckMatchConditionJob(mObj, labels, conditions, matchConditions)
 
 		},
 		UpdateFunc: func(old, new interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			newObj := new.(*batchv1.Job)
 			labels := new.(*batchv1.Job).Labels
-			logger.Debug(fmt.Sprintf("Job updated: %s, %s, %s", newObj.GetName(), newObj.GetNamespace(), newObj.Status.Succeeded))
-			checkMatchConditionJob(newObj, labels, conditions, matchConditions)
+			logger.Debug(fmt.Sprintf("Job updated: %s, %s, %d", newObj.GetName(), newObj.GetNamespace(), newObj.Status.Succeeded))
+			CheckMatchConditionJob(newObj, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			mObj := obj.(*batchv1.Job)
 			logger.Debug(fmt.Sprintf("New Job deleted from Store: %s", mObj.GetName()))
 		},
@@ -39,7 +34,7 @@ func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, st
 	informer.Run(stopper)
 }
 
-func checkMatchConditionJob(obj *batchv1.Job, labels map[string]string, conditions []crd.JobCondition, matchCondition chan Condition) {
+func CheckMatchConditionJob(obj *batchv1.Job, labels map[string]string, conditions []crd.JobCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&
@@ -47,7 +42,7 @@ func checkMatchConditionJob(obj *batchv1.Job, labels map[string]string, conditio
 			obj.Status.Succeeded == conditions[k].Succeeded {
 			matchMap, _ := IsMapPresent(labels, conditions[k].Labels)
 			if matchMap {
-				logger.Debug(fmt.Sprintf("Interest Job event found -  status:  %s, %s, %s", obj.GetName(), obj.GetNamespace(), obj.Status.Succeeded))
+				logger.Debug(fmt.Sprintf("Interest Job event found -  status:  %s, %s, %d", obj.GetName(), obj.GetNamespace(), obj.Status.Succeeded))
 				foundCondition := Condition{
 					ID:  conditions[k].ID,
 					Met: true,
@@ -65,4 +60,36 @@ func checkMatchConditionJob(obj *batchv1.Job, labels map[string]string, conditio
 
 		}
 	}
+}
+
+//ExtractJobMap - Convert Job to Map
+func ExtractJobMap(obj *batchv1.Job) map[string]string {
+	result := map[string]string{}
+	if len(obj.Name) > 0 {
+		result["name"] = obj.Name
+	}
+	if len(obj.Namespace) > 0 {
+		result["namespace"] = obj.Namespace
+	}
+	if obj.Status.Succeeded > 0 {
+		result["succeeded"] = strconv.FormatInt(int64(obj.Status.Succeeded), 10)
+	}
+
+	return result
+}
+
+//ExtractJobConditionMap - Converts JobCondition to Map
+func ExtractJobConditionMap(obj *crd.JobCondition) map[string]string {
+	result := map[string]string{}
+	if len(obj.Name) > 0 {
+		result["name"] = obj.Name
+	}
+	if len(obj.Namespace) > 0 {
+		result["namespace"] = obj.Namespace
+	}
+	if obj.Succeeded > 0 {
+		result["succeeded"] = strconv.FormatInt(int64(obj.Succeeded), 10)
+	}
+
+	return result
 }

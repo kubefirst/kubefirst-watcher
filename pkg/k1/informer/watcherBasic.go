@@ -15,25 +15,19 @@ func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions ch
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			mObj := obj.(metav1.Object)
 			labels := mObj.GetLabels()
 			logger.Debug(fmt.Sprintf("New Basic updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
+			CheckMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
 
 		},
 		UpdateFunc: func(old, new interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			newObj := new.(metav1.Object)
 			labels := newObj.GetLabels()
 			logger.Debug(fmt.Sprintf("Basic updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
-			checkMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
+			CheckMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			mObj := obj.(metav1.Object)
 			logger.Debug(fmt.Sprintf("New Basic deleted from Store: %s", mObj.GetName()))
 		},
@@ -41,7 +35,7 @@ func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions ch
 	informer.Run(stopper)
 }
 
-func checkMatchBasicConfigurationCondition(obj *crd.BasicConfigurationCondition, labels map[string]string, conditions []crd.BasicConfigurationCondition, matchCondition chan Condition) {
+func CheckMatchBasicConfigurationCondition(obj *crd.BasicConfigurationCondition, labels map[string]string, conditions []crd.BasicConfigurationCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&
@@ -66,4 +60,17 @@ func checkMatchBasicConfigurationCondition(obj *crd.BasicConfigurationCondition,
 			}
 		}
 	}
+}
+
+//ExtractBasicConfigurationMap - converts BasicConfigurationCondition to Map
+func ExtractBasicConfigurationMap(obj *crd.BasicConfigurationCondition) map[string]string {
+	result := map[string]string{}
+	if len(obj.Name) > 0 {
+		result["name"] = obj.Name
+	}
+	if len(obj.Namespace) > 0 {
+		result["namespace"] = obj.Namespace
+	}
+
+	return result
 }

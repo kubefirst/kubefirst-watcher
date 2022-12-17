@@ -13,26 +13,20 @@ func WatchPods(conditions []crd.PodCondition, matchConditions chan Condition, st
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			mObj := obj.(*corev1.Pod)
 			labels := obj.(*corev1.Pod).Labels
 
 			logger.Debug(fmt.Sprintf("New Pod updated: %s, %s, %s", mObj.GetName(), mObj.GetNamespace(), mObj.Status.Phase))
-			checkMatchConditionPod(mObj, labels, conditions, matchConditions)
+			CheckMatchConditionPod(mObj, labels, conditions, matchConditions)
 
 		},
 		UpdateFunc: func(old, new interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			newObj := new.(*corev1.Pod)
 			labels := new.(*corev1.Pod).Labels
 			logger.Debug(fmt.Sprintf("Pod updated: %s, %s, %s", newObj.GetName(), newObj.GetNamespace(), newObj.Status.Phase))
-			checkMatchConditionPod(newObj, labels, conditions, matchConditions)
+			CheckMatchConditionPod(newObj, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
-			// "k8s.io/apimachinery/pkg/apis/meta/v1" provides an Object
-			// interface that allows us to get metadata easily
 			mObj := obj.(*corev1.Pod)
 			logger.Debug(fmt.Sprintf("New Pod deleted from Store: %s", mObj.GetName()))
 		},
@@ -40,7 +34,7 @@ func WatchPods(conditions []crd.PodCondition, matchConditions chan Condition, st
 	informer.Run(stopper)
 }
 
-func checkMatchConditionPod(obj *corev1.Pod, labels map[string]string, conditions []crd.PodCondition, matchCondition chan Condition) {
+func CheckMatchConditionPod(obj *corev1.Pod, labels map[string]string, conditions []crd.PodCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		if obj.Namespace == conditions[k].Namespace &&
@@ -66,4 +60,36 @@ func checkMatchConditionPod(obj *corev1.Pod, labels map[string]string, condition
 
 		}
 	}
+}
+
+//ExtractPodMap - Convert Pod to Map
+func ExtractPodMap(obj *corev1.Pod) map[string]string {
+	result := map[string]string{}
+	if len(obj.Name) > 0 {
+		result["name"] = obj.Name
+	}
+	if len(obj.Namespace) > 0 {
+		result["namespace"] = obj.Namespace
+	}
+	if len(string(obj.Status.Phase)) > 0 {
+		result["phase"] = string(obj.Status.Phase)
+	}
+
+	return result
+}
+
+//ExtractPodConditionMap - Convert PodCondition to Map
+func ExtractPodConditionMap(obj *crd.PodCondition) map[string]string {
+	result := map[string]string{}
+	if len(obj.Name) > 0 {
+		result["name"] = obj.Name
+	}
+	if len(obj.Namespace) > 0 {
+		result["namespace"] = obj.Namespace
+	}
+	if len(obj.Phase) > 0 {
+		result["phase"] = obj.Phase
+	}
+
+	return result
 }
