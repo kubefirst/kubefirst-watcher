@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
-	"github.com/kubefirst/kubefirst-watcher/pkg/k1/k8s"
 	"go.uber.org/zap"
 	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 )
 
 // StartWatcher - starts watcher tooling
@@ -19,7 +19,7 @@ const (
 	StatusTimeout   string = "Timeout"
 )
 
-func StartCRDWatcher(clientCrd *crd.CRDClient, loggerIn *zap.Logger) error {
+func StartCRDWatcher(clientSet *kubernetes.Clientset, clientCrd *crd.CRDClient, loggerIn *zap.Logger) error {
 	logger = clientCrd.Logger
 	myCRD, err := clientCrd.GetCRD()
 	if err != nil {
@@ -40,7 +40,7 @@ func StartCRDWatcher(clientCrd *crd.CRDClient, loggerIn *zap.Logger) error {
 	go checkConditions(exitScenarioState, clientCrd, interestingPods, stopper)
 	//Start Watchers
 	//go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
-	startWatchers(exitScenario, interestingPods, stopper)
+	startWatchers(clientSet, exitScenario, interestingPods, stopper)
 	//Check Current State - to catch events pre-informers are started
 	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
 	logger.Error("Timeout - Fail to match conditions")
@@ -48,8 +48,7 @@ func StartCRDWatcher(clientCrd *crd.CRDClient, loggerIn *zap.Logger) error {
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
-func startWatchers(exitScenario *crd.WatcherSpec, interestingEvents chan Condition, stopper chan struct{}) {
-	clientSet := k8s.GetK8SConfig()
+func startWatchers(clientSet *kubernetes.Clientset, exitScenario *crd.WatcherSpec, interestingEvents chan Condition, stopper chan struct{}) {
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
 	if len(exitScenario.Pods) > 0 {
 		go WatchPods(exitScenario.Pods, interestingEvents, stopper, factory.Core().V1().Pods().Informer())
