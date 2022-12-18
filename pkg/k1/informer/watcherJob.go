@@ -34,32 +34,29 @@ func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, st
 	informer.Run(stopper)
 }
 
-func CheckMatchConditionJob(obj *batchv1.Job, labels map[string]string, conditions []crd.JobCondition, matchCondition chan Condition) {
+func CheckMatchConditionJob(obj *batchv1.Job, labelsFound map[string]string, conditions []crd.JobCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
-		if obj.Namespace == conditions[k].Namespace &&
-			obj.Name == conditions[k].Name &&
-			obj.Status.Succeeded == conditions[k].Succeeded {
-			matchMap, _ := IsMapPresent(labels, conditions[k].Labels)
-			if matchMap {
-				logger.Debug(fmt.Sprintf("Interest Job event found -  status:  %s, %s, %d", obj.GetName(), obj.GetNamespace(), obj.Status.Succeeded))
-				foundCondition := Condition{
-					ID:  conditions[k].ID,
-					Met: true,
-				}
-				logger.Debug(fmt.Sprintf("Sending Condition -  status:  %#v ", foundCondition))
-				matchCondition <- foundCondition
-				//Remove Condition found
-				//https://github.com/golang/go/wiki/SliceTricks
-				// conditions = append(conditions[:k], conditions[k+1:]...)
-				// it may fail on nil scenarios - extra checks needed
-				//This need to be global, as this checks may run in parallel.
-				//TODO: need to find an list that is thread safe
-				logger.Debug(fmt.Sprintf("Remaning Condition -  status:  %#v ", foundCondition))
+		propertyExpected := ExtractJobConditionMap(&conditions[k])
+		propertyFound := ExtractJobMap(obj)
+		if MatchesGeneric(&propertyFound, &labelsFound, &propertyExpected, &conditions[k].Labels) {
+			logger.Debug(fmt.Sprintf("Interest Job event found -  status:  %s, %s, %d", obj.GetName(), obj.GetNamespace(), obj.Status.Succeeded))
+			foundCondition := Condition{
+				ID:  conditions[k].ID,
+				Met: true,
 			}
-
+			logger.Debug(fmt.Sprintf("Sending Condition -  status:  %#v ", foundCondition))
+			matchCondition <- foundCondition
+			//Remove Condition found
+			//https://github.com/golang/go/wiki/SliceTricks
+			// conditions = append(conditions[:k], conditions[k+1:]...)
+			// it may fail on nil scenarios - extra checks needed
+			//This need to be global, as this checks may run in parallel.
+			//TODO: need to find an list that is thread safe
+			logger.Debug(fmt.Sprintf("Remaning Condition -  status:  %#v ", foundCondition))
 		}
 	}
+
 }
 
 //ExtractJobMap - Convert Job to Map

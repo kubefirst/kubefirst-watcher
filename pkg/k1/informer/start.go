@@ -2,14 +2,12 @@ package informer
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/k8s"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/informers"
 )
 
@@ -47,32 +45,6 @@ func StartCRDWatcher(clientCrd *crd.CRDClient, loggerIn *zap.Logger) error {
 	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
 	logger.Error("Timeout - Fail to match conditions")
 	clientCrd.UpdateStatus(StatusTimeout)
-	return fmt.Errorf("timeout - Failed to meet exit condition")
-}
-
-func StartWatcher(configFile string, ownerFile string, loggerIn *zap.Logger) error {
-	return fmt.Errorf("Disabled mode")
-	logger = loggerIn
-	//Setup channels
-	interestingPods := make(chan Condition)
-	defer close(interestingPods)
-	stopper := make(chan struct{})
-	defer close(stopper)
-
-	//Process Conditions into goals
-	exitScenario, exitScenarioState, _ := loadExitScenario(configFile)
-	logger.Info(fmt.Sprintf("%#v", exitScenario))
-	logger.Info(fmt.Sprintf("%#v", exitScenarioState))
-	//Process Conditions into watchers
-	//Start Goals tracker
-	//go checkConditions(exitScenarioState, ownerFile, interestingPods, stopper)
-	//Start Watchers
-	//go WatchSecrets(exitScenario.Secrets, interestingPods, stopper)
-	startWatchers(exitScenario, interestingPods, stopper)
-	//Check Current State - to catch events pre-informers are started
-	time.Sleep(time.Duration(exitScenario.Timeout) * time.Second)
-	logger.Error("Timeout - Fail to match conditions")
-	UpdateStatus(ownerFile, StatusTimeout)
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
@@ -138,29 +110,6 @@ func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*crd.WatcherSpec, *Ex
 	}
 	logger.Info(fmt.Sprintf("Log processing exitScenarioState: %v", exitScenarioState))
 	return &watcherSpec, exitScenarioState, nil
-}
-
-func loadExitScenario(file string) (*crd.WatcherSpec, *ExitScenarioState, error) {
-	exitScenario := &crd.WatcherSpec{}
-	logger.Debug("Loading config file:" + file)
-	yamlFile, err := ioutil.ReadFile(file)
-	if err != nil {
-		logger.Info(fmt.Sprintf("yamlFile.Get err   #%v ", err))
-		return nil, nil, err
-	}
-	err = yaml.Unmarshal(yamlFile, exitScenario)
-	if err != nil {
-		logger.Info(fmt.Sprintf("Unmarshal: %v", err))
-		return nil, nil, err
-	}
-
-	exitScenarioState, err := processExitScenario(exitScenario)
-	if err != nil {
-		logger.Info(fmt.Sprintf("Error processing Scenario State: %v", err))
-		return nil, nil, err
-	}
-	logger.Info(fmt.Sprintf("Log processing exitScenarioState: %v", exitScenarioState))
-	return exitScenario, exitScenarioState, nil
 }
 
 func processExitScenario(exitScenario *crd.WatcherSpec) (*ExitScenarioState, error) {

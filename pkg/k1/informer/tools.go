@@ -27,7 +27,7 @@ func getK8SConfig() *kubernetes.Clientset {
 
 }
 
-func IsMapPresent(sourceMap map[string]string, subsetMap map[string]string) (bool, error) {
+func IsMapPresent(sourceMap *map[string]string, subsetMap *map[string]string) (bool, error) {
 	match := true
 	keysAll := funk.Keys(sourceMap)
 	keysSubset := funk.Keys(subsetMap)
@@ -37,7 +37,7 @@ func IsMapPresent(sourceMap map[string]string, subsetMap map[string]string) (boo
 		match = false
 	}
 	funk.ForEach(intersect, func(x string) {
-		if sourceMap[x] != subsetMap[x] {
+		if (*sourceMap)[x] != (*subsetMap)[x] {
 			match = false
 		}
 	})
@@ -97,4 +97,18 @@ func loadWatcherConfig(file string) (*WatcherConfig, error) {
 	}
 
 	return watcherConfig, nil
+}
+
+// MatchesGeneric Verify if object found matches expected conditions
+// Isolated to help on re-use of the logic
+func MatchesGeneric(propertyFound *map[string]string, labelsFound *map[string]string, propertyExpected *map[string]string, labelsExpected *map[string]string) bool {
+	matchCore, _ := IsMapPresent(propertyFound, propertyExpected)
+	if !matchCore {
+		return false
+	}
+	matchLabels, _ := IsMapPresent(labelsFound, labelsExpected)
+	if !matchLabels {
+		return false
+	}
+	return true
 }

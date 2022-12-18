@@ -54,7 +54,7 @@ func Test_ExtractBasicConfigurationMatchTest01(t *testing.T) {
 	propertyExpected := informer.ExtractBasicConfigurationMap(basicConfig)
 	propertyFound := map[string]string{"name": "nameObj", "namespace": "namespaceObj"}
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if !match {
 		t.Errorf("Not match, got: %v ", match)
 	}
@@ -69,7 +69,7 @@ func Test_ExtractBasicConfigurationMatchTest02(t *testing.T) {
 	propertyExpected := informer.ExtractBasicConfigurationMap(basicConfig)
 	propertyFound := map[string]string{"name": "nameObj", "namespace": "namespaceObj"}
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if !match {
 		t.Errorf("Not match, got: %v ", match)
 	}
@@ -85,7 +85,7 @@ func Test_ExtractBasicConfigurationMatchTest03(t *testing.T) {
 	propertyExpected := informer.ExtractBasicConfigurationMap(basicConfig)
 	propertyFound := map[string]string{"name": "nameObj02", "namespace": "namespaceObj"}
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if match {
 		t.Errorf("match, got: %v ", match)
 	}
@@ -106,7 +106,7 @@ func Test_ExtractJobTest01(t *testing.T) {
 	propertyExpected := informer.ExtractJobConditionMap(jobConditionConfig)
 	propertyFound := informer.ExtractJobMap(jobFound)
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if !match {
 		t.Errorf("Not match, got: %v ", match)
 	}
@@ -124,7 +124,7 @@ func Test_ExtractJobTest02(t *testing.T) {
 	propertyExpected := informer.ExtractJobConditionMap(jobConditionConfig)
 	propertyFound := informer.ExtractJobMap(jobFound)
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if !match {
 		t.Errorf("Not match, got: %v ", match)
 	}
@@ -143,7 +143,7 @@ func Test_ExtractJobTest03(t *testing.T) {
 	propertyExpected := informer.ExtractJobConditionMap(jobConditionConfig)
 	propertyFound := informer.ExtractJobMap(jobFound)
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if match {
 		t.Errorf("match, got: %v ", match)
 	}
@@ -164,7 +164,7 @@ func Test_ExtractPodTest01(t *testing.T) {
 	propertyExpected := informer.ExtractPodConditionMap(podConditionConfig)
 	propertyFound := informer.ExtractPodMap(podFound)
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if !match {
 		t.Errorf("Not match, got: %v ", match)
 	}
@@ -182,7 +182,7 @@ func Test_ExtractPodTest02(t *testing.T) {
 	propertyExpected := informer.ExtractPodConditionMap(podConditionConfig)
 	propertyFound := informer.ExtractPodMap(podFound)
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if !match {
 		t.Errorf("Not match, got: %v ", match)
 	}
@@ -201,7 +201,7 @@ func Test_ExtractPodTest03(t *testing.T) {
 	propertyExpected := informer.ExtractPodConditionMap(podConditionConfig)
 	propertyFound := informer.ExtractPodMap(podFound)
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if match {
 		t.Errorf("match, got: %v ", match)
 	}
@@ -222,8 +222,108 @@ func Test_ExtractPodTest04(t *testing.T) {
 	propertyExpected := informer.ExtractPodConditionMap(podConditionConfig)
 	propertyFound := informer.ExtractPodMap(podFound)
 
-	match, _ := informer.IsMapPresent(propertyFound, propertyExpected)
+	match, _ := informer.IsMapPresent(&propertyFound, &propertyExpected)
 	if match {
 		t.Errorf(" match, got: %v ", match)
+	}
+}
+
+func Test_MatchesGenericBasicConfigurationWithLabels01(t *testing.T) {
+	logger.Debug("Test BasicConfiguration MatchesGeneric equals")
+	objectExpected := &crd.BasicConfigurationCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyExpected := informer.ExtractBasicConfigurationMap(objectExpected)
+	objFound := &crd.BasicConfigurationCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyFound := informer.ExtractBasicConfigurationMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if !match {
+		t.Errorf("Not match, got: %v ", match)
+	}
+}
+
+func Test_MatchesGenericBasicConfigurationWithLabels02(t *testing.T) {
+	logger.Debug("Test BasicConfiguration MatchesGeneric diff")
+	objectExpected := &crd.BasicConfigurationCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Labels: map[string]string{
+			"app": "nottest",
+		},
+	}
+	propertyExpected := informer.ExtractBasicConfigurationMap(objectExpected)
+	objFound := &crd.BasicConfigurationCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyFound := informer.ExtractBasicConfigurationMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if match {
+		t.Errorf("match, got: %v ", match)
+	}
+}
+
+func Test_MatchesPodWithLabels01(t *testing.T) {
+	logger.Debug("Test Pod MatchesGeneric equals")
+	objectExpected := &crd.PodCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Phase:     string(corev1.PodRunning),
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyExpected := informer.ExtractPodConditionMap(objectExpected)
+	objFound := &corev1.Pod{
+		ObjectMeta: v1.ObjectMeta{Name: "nameObj", Namespace: "namespaceObj", Labels: map[string]string{
+			"app": "test",
+		}},
+		Status: corev1.PodStatus{Phase: corev1.PodRunning},
+	}
+	propertyFound := informer.ExtractPodMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if !match {
+		t.Errorf("Not match, got: %v ", match)
+	}
+}
+
+func Test_MatchesPodWithLabels02(t *testing.T) {
+	logger.Debug("Test Pod MatchesGeneric not equals")
+	objectExpected := &crd.PodCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Phase:     string(corev1.PodRunning),
+		Labels: map[string]string{
+			"app": "nottest",
+		},
+	}
+	propertyExpected := informer.ExtractPodConditionMap(objectExpected)
+	objFound := &corev1.Pod{
+		ObjectMeta: v1.ObjectMeta{Name: "nameObj", Namespace: "namespaceObj", Labels: map[string]string{
+			"app": "test",
+		}},
+		Status: corev1.PodStatus{Phase: corev1.PodRunning},
+	}
+	propertyFound := informer.ExtractPodMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if match {
+		t.Errorf("Match, got: %v ", match)
 	}
 }
