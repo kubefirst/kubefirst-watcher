@@ -10,6 +10,7 @@ import (
 	"github.com/kubefirst/kubefirst-watcher/cmd/internal/logutils"
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/informer"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,7 @@ var watcherCmd = &cobra.Command{
 		fmt.Println("watcher called")
 		logutils.InitializeLogger()
 		logutils.Logger.Info("Watcher ready to start")
+		clientSet := k8s.GetK8SConfig()
 		myClient := &crd.CRDClient{
 			Logger: logutils.Logger,
 			CRD: &crd.CRDConfig{
@@ -38,7 +40,7 @@ var watcherCmd = &cobra.Command{
 				Resource:     crdResource,
 			},
 		}
-		return informer.StartCRDWatcher(myClient, logutils.Logger)
+		return informer.StartCRDWatcher(clientSet, myClient, logutils.Logger)
 		//return informer.StartWatcher(configFile, ownerFile, logutils.Logger)
 	},
 }
