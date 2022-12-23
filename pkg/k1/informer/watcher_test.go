@@ -9,6 +9,7 @@ import (
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/v1beta1"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -325,5 +326,117 @@ func Test_MatchesPodWithLabels02(t *testing.T) {
 	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
 	if match {
 		t.Errorf("Match, got: %v ", match)
+	}
+}
+
+func Test_MatchesDeploymentWithLabels01(t *testing.T) {
+	one := int32(1)
+	onePtr := &one
+	logger.Debug(fmt.Sprintf("Test Deployment MatchesGeneric equals - %v", *onePtr))
+	objectExpected := &v1beta1.DeploymentCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Ready:     "true",
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyExpected := informer.ExtractDeploymentConditionMap(objectExpected)
+	objFound := &appsv1.Deployment{
+		ObjectMeta: v1.ObjectMeta{Name: "nameObj", Namespace: "namespaceObj", Labels: map[string]string{
+			"app": "test",
+		}},
+		Spec:   appsv1.DeploymentSpec{Replicas: onePtr},
+		Status: appsv1.DeploymentStatus{Replicas: 1, ReadyReplicas: 1, UnavailableReplicas: 0},
+	}
+	propertyFound := informer.ExtractDeploymentMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if !match {
+		t.Errorf("Not match, got: %v ", match)
+	}
+}
+
+func Test_MatchesDeploymentWithLabels02(t *testing.T) {
+	one := int32(1)
+	onePtr := &one
+	logger.Debug(fmt.Sprintf("Test Deployment MatchesGeneric not equals - %v", *onePtr))
+	objectExpected := &v1beta1.DeploymentCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Ready:     "true",
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyExpected := informer.ExtractDeploymentConditionMap(objectExpected)
+	objFound := &appsv1.Deployment{
+		ObjectMeta: v1.ObjectMeta{Name: "nameObj", Namespace: "namespaceObj", Labels: map[string]string{
+			"app": "test",
+		}},
+		Spec:   appsv1.DeploymentSpec{Replicas: onePtr},
+		Status: appsv1.DeploymentStatus{Replicas: 1, ReadyReplicas: 0, UnavailableReplicas: 0},
+	}
+	propertyFound := informer.ExtractDeploymentMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if match {
+		t.Errorf("Not match, got: %v ", match)
+	}
+}
+
+func Test_MatchesStaefulSetWithLabels01(t *testing.T) {
+	one := int32(1)
+	onePtr := &one
+	logger.Debug(fmt.Sprintf("Test StatefulSet MatchesGeneric equals - %v", *onePtr))
+	objectExpected := &v1beta1.StatefulSetCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Ready:     "true",
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyExpected := informer.ExtractStatefulSetConditionMap(objectExpected)
+	objFound := &appsv1.StatefulSet{
+		ObjectMeta: v1.ObjectMeta{Name: "nameObj", Namespace: "namespaceObj", Labels: map[string]string{
+			"app": "test",
+		}},
+		Spec:   appsv1.StatefulSetSpec{Replicas: onePtr},
+		Status: appsv1.StatefulSetStatus{Replicas: 1, ReadyReplicas: 1},
+	}
+	propertyFound := informer.ExtractStatefulSetMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if !match {
+		t.Errorf("Not match, got: %v ", match)
+	}
+}
+
+func Test_MatchesStaefulSetWithLabels02(t *testing.T) {
+	one := int32(1)
+	onePtr := &one
+	logger.Debug(fmt.Sprintf("Test StatefulSet MatchesGeneric not equals - %v", *onePtr))
+	objectExpected := &v1beta1.StatefulSetCondition{
+		Namespace: "namespaceObj",
+		Name:      "nameObj",
+		Ready:     "true",
+		Labels: map[string]string{
+			"app": "test",
+		},
+	}
+	propertyExpected := informer.ExtractStatefulSetConditionMap(objectExpected)
+	objFound := &appsv1.StatefulSet{
+		ObjectMeta: v1.ObjectMeta{Name: "nameObj", Namespace: "namespaceObj", Labels: map[string]string{
+			"app": "test",
+		}},
+		Spec:   appsv1.StatefulSetSpec{Replicas: onePtr},
+		Status: appsv1.StatefulSetStatus{Replicas: 1, ReadyReplicas: 0},
+	}
+	propertyFound := informer.ExtractStatefulSetMap(objFound)
+
+	match := informer.MatchesGeneric(&propertyFound, &objFound.Labels, &propertyExpected, &objectExpected.Labels)
+	if match {
+		t.Errorf("Not match, got: %v ", match)
 	}
 }
