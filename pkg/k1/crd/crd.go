@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/k8s"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/v1beta1"
 	"go.uber.org/zap"
 	api "k8s.io/apimachinery/pkg/types"
 )
@@ -46,7 +47,7 @@ func (client *CRDClient) UpdateStatus(status string) error {
 }
 
 // GetCRD returns the Watcher CRD Object, used to feed configs
-func (client *CRDClient) GetCRD() (Watcher, error) {
+func (client *CRDClient) GetCRD() (v1beta1.Watcher, error) {
 	client.Logger.Debug(fmt.Sprintf("Watcher Config: #%v ", client.CRD))
 	clientSet := k8s.GetK8SConfig()
 	object, err := clientSet.RESTClient().
@@ -59,14 +60,14 @@ func (client *CRDClient) GetCRD() (Watcher, error) {
 	client.Logger.Info(fmt.Sprintf("Get CRD   #%v ", string(object)))
 	if err != nil {
 		client.Logger.Info(fmt.Sprintf("Error loading CRD   #%v ", err))
-		return Watcher{}, err
+		return v1beta1.Watcher{}, err
 	}
-	watcher := Watcher{}
+	watcher := v1beta1.Watcher{}
 	err = json.Unmarshal(object, &watcher)
 	client.Logger.Info(fmt.Sprintf("Watcher   #%v ", watcher))
 	if err != nil {
 		client.Logger.Info(fmt.Sprintf("Error loading CRD   #%v ", err))
-		return Watcher{}, err
+		return v1beta1.Watcher{}, err
 	}
 	client.Logger.Info(fmt.Sprintf("Update status:  %#v ", client.CRD))
 	return watcher, nil

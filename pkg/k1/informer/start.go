@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/v1beta1"
 	"go.uber.org/zap"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -48,7 +49,7 @@ func StartCRDWatcher(clientSet *kubernetes.Clientset, clientCrd *crd.CRDClient, 
 	return fmt.Errorf("timeout - Failed to meet exit condition")
 }
 
-func startWatchers(clientSet *kubernetes.Clientset, exitScenario *crd.WatcherSpec, interestingEvents chan Condition, stopper chan struct{}) {
+func startWatchers(clientSet *kubernetes.Clientset, exitScenario *v1beta1.WatcherSpec, interestingEvents chan Condition, stopper chan struct{}) {
 	factory := informers.NewSharedInformerFactory(clientSet, 0)
 	if len(exitScenario.Pods) > 0 {
 		go WatchPods(exitScenario.Pods, interestingEvents, stopper, factory.Core().V1().Pods().Informer())
@@ -100,7 +101,7 @@ func checkConditions(goal *ExitScenarioState, clientCrd *crd.CRDClient, in <-cha
 		}
 	}
 }
-func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*crd.WatcherSpec, *ExitScenarioState, error) {
+func loadExitScenarioFromCRD(watcherSpec v1beta1.WatcherSpec) (*v1beta1.WatcherSpec, *ExitScenarioState, error) {
 
 	exitScenarioState, err := processExitScenario(&watcherSpec)
 	if err != nil {
@@ -111,7 +112,7 @@ func loadExitScenarioFromCRD(watcherSpec crd.WatcherSpec) (*crd.WatcherSpec, *Ex
 	return &watcherSpec, exitScenarioState, nil
 }
 
-func processExitScenario(exitScenario *crd.WatcherSpec) (*ExitScenarioState, error) {
+func processExitScenario(exitScenario *v1beta1.WatcherSpec) (*ExitScenarioState, error) {
 	exitScenarioState := &ExitScenarioState{}
 	exitScenarioState.Exit = exitScenario.Exit
 	exitScenarioState.Timeout = exitScenario.Timeout
