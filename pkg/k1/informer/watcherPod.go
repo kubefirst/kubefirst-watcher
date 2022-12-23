@@ -3,12 +3,12 @@ package informer
 import (
 	"fmt"
 
-	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchPods(conditions []crd.PodCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
+func WatchPods(conditions []v1beta1.PodCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -34,7 +34,7 @@ func WatchPods(conditions []crd.PodCondition, matchConditions chan Condition, st
 	informer.Run(stopper)
 }
 
-func CheckMatchConditionPod(obj *corev1.Pod, labelsFound map[string]string, conditions []crd.PodCondition, matchCondition chan Condition) {
+func CheckMatchConditionPod(obj *corev1.Pod, labelsFound map[string]string, conditions []v1beta1.PodCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		propertyExpected := ExtractPodConditionMap(&conditions[k])
@@ -76,7 +76,7 @@ func ExtractPodMap(obj *corev1.Pod) map[string]string {
 }
 
 //ExtractPodConditionMap - Convert PodCondition to Map
-func ExtractPodConditionMap(obj *crd.PodCondition) map[string]string {
+func ExtractPodConditionMap(obj *v1beta1.PodCondition) map[string]string {
 	result := map[string]string{}
 	if len(obj.Name) > 0 {
 		result["name"] = obj.Name

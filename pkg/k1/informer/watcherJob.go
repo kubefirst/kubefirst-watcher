@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/v1beta1"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
+func WatchJobs(conditions []v1beta1.JobCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
@@ -34,7 +34,7 @@ func WatchJobs(conditions []crd.JobCondition, matchConditions chan Condition, st
 	informer.Run(stopper)
 }
 
-func CheckMatchConditionJob(obj *batchv1.Job, labelsFound map[string]string, conditions []crd.JobCondition, matchCondition chan Condition) {
+func CheckMatchConditionJob(obj *batchv1.Job, labelsFound map[string]string, conditions []v1beta1.JobCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		propertyExpected := ExtractJobConditionMap(&conditions[k])
@@ -76,7 +76,7 @@ func ExtractJobMap(obj *batchv1.Job) map[string]string {
 }
 
 //ExtractJobConditionMap - Converts JobCondition to Map
-func ExtractJobConditionMap(obj *crd.JobCondition) map[string]string {
+func ExtractJobConditionMap(obj *v1beta1.JobCondition) map[string]string {
 	result := map[string]string{}
 	if len(obj.Name) > 0 {
 		result["name"] = obj.Name

@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
 	"github.com/kubefirst/kubefirst-watcher/pkg/k1/informer"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/v1beta1"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	batchv1 "k8s.io/api/batch/v1"
@@ -46,7 +46,7 @@ func TestMain(m *testing.M) {
 
 func Test_ExtractBasicConfigurationMatchTest01(t *testing.T) {
 	logger.Debug("Test BasicConfiguration Match equals")
-	basicConfig := &crd.BasicConfigurationCondition{
+	basicConfig := &v1beta1.BasicConfigurationCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 	}
@@ -62,7 +62,7 @@ func Test_ExtractBasicConfigurationMatchTest01(t *testing.T) {
 
 func Test_ExtractBasicConfigurationMatchTest02(t *testing.T) {
 	logger.Debug("Test BasicConfiguration Match namespace vs object of same namespace")
-	basicConfig := &crd.BasicConfigurationCondition{
+	basicConfig := &v1beta1.BasicConfigurationCondition{
 		Namespace: "namespaceObj",
 	}
 
@@ -77,7 +77,7 @@ func Test_ExtractBasicConfigurationMatchTest02(t *testing.T) {
 
 func Test_ExtractBasicConfigurationMatchTest03(t *testing.T) {
 	logger.Debug("Test BasicConfiguration Match off different objects")
-	basicConfig := &crd.BasicConfigurationCondition{
+	basicConfig := &v1beta1.BasicConfigurationCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 	}
@@ -93,7 +93,7 @@ func Test_ExtractBasicConfigurationMatchTest03(t *testing.T) {
 
 func Test_ExtractJobTest01(t *testing.T) {
 	logger.Debug("Test Job Match equals")
-	jobConditionConfig := &crd.JobCondition{
+	jobConditionConfig := &v1beta1.JobCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Succeeded: 1,
@@ -114,7 +114,7 @@ func Test_ExtractJobTest01(t *testing.T) {
 
 func Test_ExtractJobTest02(t *testing.T) {
 	logger.Debug("Test Job Match namespace vs object of same namespace")
-	jobConditionConfig := &crd.JobCondition{
+	jobConditionConfig := &v1beta1.JobCondition{
 		Namespace: "namespaceObj",
 	}
 	jobFound := &batchv1.Job{
@@ -132,7 +132,7 @@ func Test_ExtractJobTest02(t *testing.T) {
 
 func Test_ExtractJobTest03(t *testing.T) {
 	logger.Debug("Test Job Match off different objects")
-	jobConditionConfig := &crd.JobCondition{
+	jobConditionConfig := &v1beta1.JobCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 	}
@@ -151,7 +151,7 @@ func Test_ExtractJobTest03(t *testing.T) {
 
 func Test_ExtractPodTest01(t *testing.T) {
 	logger.Debug("Test Pod Match equals")
-	podConditionConfig := &crd.PodCondition{
+	podConditionConfig := &v1beta1.PodCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Phase:     string(corev1.PodRunning),
@@ -172,7 +172,7 @@ func Test_ExtractPodTest01(t *testing.T) {
 
 func Test_ExtractPodTest02(t *testing.T) {
 	logger.Debug("Test Pod Match namespace vs object of same namespace")
-	podConditionConfig := &crd.PodCondition{
+	podConditionConfig := &v1beta1.PodCondition{
 		Namespace: "namespaceObj",
 	}
 	podFound := &corev1.Pod{
@@ -190,7 +190,7 @@ func Test_ExtractPodTest02(t *testing.T) {
 
 func Test_ExtractPodTest03(t *testing.T) {
 	logger.Debug("Test Pod Match off different objects")
-	podConditionConfig := &crd.PodCondition{
+	podConditionConfig := &v1beta1.PodCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 	}
@@ -209,7 +209,7 @@ func Test_ExtractPodTest03(t *testing.T) {
 
 func Test_ExtractPodTest04(t *testing.T) {
 	logger.Debug("Test Pod Match off different objects different phase")
-	podConditionConfig := &crd.PodCondition{
+	podConditionConfig := &v1beta1.PodCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Phase:     string(corev1.PodRunning),
@@ -230,7 +230,7 @@ func Test_ExtractPodTest04(t *testing.T) {
 
 func Test_MatchesGenericBasicConfigurationWithLabels01(t *testing.T) {
 	logger.Debug("Test BasicConfiguration MatchesGeneric equals")
-	objectExpected := &crd.BasicConfigurationCondition{
+	objectExpected := &v1beta1.BasicConfigurationCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Labels: map[string]string{
@@ -238,7 +238,7 @@ func Test_MatchesGenericBasicConfigurationWithLabels01(t *testing.T) {
 		},
 	}
 	propertyExpected := informer.ExtractBasicConfigurationMap(objectExpected)
-	objFound := &crd.BasicConfigurationCondition{
+	objFound := &v1beta1.BasicConfigurationCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Labels: map[string]string{
@@ -255,7 +255,7 @@ func Test_MatchesGenericBasicConfigurationWithLabels01(t *testing.T) {
 
 func Test_MatchesGenericBasicConfigurationWithLabels02(t *testing.T) {
 	logger.Debug("Test BasicConfiguration MatchesGeneric diff")
-	objectExpected := &crd.BasicConfigurationCondition{
+	objectExpected := &v1beta1.BasicConfigurationCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Labels: map[string]string{
@@ -263,7 +263,7 @@ func Test_MatchesGenericBasicConfigurationWithLabels02(t *testing.T) {
 		},
 	}
 	propertyExpected := informer.ExtractBasicConfigurationMap(objectExpected)
-	objFound := &crd.BasicConfigurationCondition{
+	objFound := &v1beta1.BasicConfigurationCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Labels: map[string]string{
@@ -280,7 +280,7 @@ func Test_MatchesGenericBasicConfigurationWithLabels02(t *testing.T) {
 
 func Test_MatchesPodWithLabels01(t *testing.T) {
 	logger.Debug("Test Pod MatchesGeneric equals")
-	objectExpected := &crd.PodCondition{
+	objectExpected := &v1beta1.PodCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Phase:     string(corev1.PodRunning),
@@ -305,7 +305,7 @@ func Test_MatchesPodWithLabels01(t *testing.T) {
 
 func Test_MatchesPodWithLabels02(t *testing.T) {
 	logger.Debug("Test Pod MatchesGeneric not equals")
-	objectExpected := &crd.PodCondition{
+	objectExpected := &v1beta1.PodCondition{
 		Namespace: "namespaceObj",
 		Name:      "nameObj",
 		Phase:     string(corev1.PodRunning),

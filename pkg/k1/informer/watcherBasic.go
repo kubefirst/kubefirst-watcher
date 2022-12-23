@@ -3,14 +3,14 @@ package informer
 import (
 	"fmt"
 
-	"github.com/kubefirst/kubefirst-watcher/pkg/k1/crd"
+	"github.com/kubefirst/kubefirst-watcher/pkg/k1/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
 // TODO: Make this more generic
 
-func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
+func WatchBasic(conditions []v1beta1.BasicConfigurationCondition, matchConditions chan Condition, stopper chan struct{}, informer cache.SharedIndexInformer) {
 	logger.Debug(fmt.Sprintf("Started Wacher for %#v", conditions))
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -18,14 +18,14 @@ func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions ch
 			mObj := obj.(metav1.Object)
 			labels := mObj.GetLabels()
 			logger.Debug(fmt.Sprintf("New Basic updated: %s, %s", mObj.GetName(), mObj.GetNamespace()))
-			CheckMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
+			CheckMatchBasicConfigurationCondition(&v1beta1.BasicConfigurationCondition{Namespace: mObj.GetNamespace(), Name: mObj.GetName()}, labels, conditions, matchConditions)
 
 		},
 		UpdateFunc: func(old, new interface{}) {
 			newObj := new.(metav1.Object)
 			labels := newObj.GetLabels()
 			logger.Debug(fmt.Sprintf("Basic updated: %s, %s", newObj.GetName(), newObj.GetNamespace()))
-			CheckMatchBasicConfigurationCondition(&crd.BasicConfigurationCondition{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
+			CheckMatchBasicConfigurationCondition(&v1beta1.BasicConfigurationCondition{Namespace: newObj.GetNamespace(), Name: newObj.GetName()}, labels, conditions, matchConditions)
 		},
 		DeleteFunc: func(obj interface{}) {
 			mObj := obj.(metav1.Object)
@@ -35,7 +35,7 @@ func WatchBasic(conditions []crd.BasicConfigurationCondition, matchConditions ch
 	informer.Run(stopper)
 }
 
-func CheckMatchBasicConfigurationCondition(obj *crd.BasicConfigurationCondition, labelsFound map[string]string, conditions []crd.BasicConfigurationCondition, matchCondition chan Condition) {
+func CheckMatchBasicConfigurationCondition(obj *v1beta1.BasicConfigurationCondition, labelsFound map[string]string, conditions []v1beta1.BasicConfigurationCondition, matchCondition chan Condition) {
 	//check on conditions list if there is a match
 	for k, _ := range conditions {
 		propertyExpected := ExtractBasicConfigurationMap(&conditions[k])
@@ -60,7 +60,7 @@ func CheckMatchBasicConfigurationCondition(obj *crd.BasicConfigurationCondition,
 }
 
 //ExtractBasicConfigurationMap - converts BasicConfigurationCondition to Map
-func ExtractBasicConfigurationMap(obj *crd.BasicConfigurationCondition) map[string]string {
+func ExtractBasicConfigurationMap(obj *v1beta1.BasicConfigurationCondition) map[string]string {
 	result := map[string]string{}
 	if len(obj.Name) > 0 {
 		result["name"] = obj.Name

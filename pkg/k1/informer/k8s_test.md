@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	//v1beta1 "github.com/kubefirst/kubefirst-watcher-operator/api/v1beta1"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -69,28 +67,3 @@ func TestFakeClient(t *testing.T) {
 		t.Error("Informer did not get the added pod")
 	}
 }
-
-/*
-func TestCRD(t *testing.T) {
-
-	// We will create an informer that writes added pods to a channel.
-	sampleWatcher := &v1beta1.Watcher{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "sample",
-			Namespace: "default",
-			Labels: map[string]string{
-				"app": "watcher",
-			},
-		},
-	}
-	objs := []runtime.Object{sampleWatcher}
-	cl := sigsfake.NewFakeClient(objs...)
-	opt := client.MatchingLabels(map[string]string{"label-key": "label-value"})
-	wactherList := &v1beta1.WatcherList{}
-	err := cl.List(context.TODO(), wactherList, opt)
-	if err != nil {
-		t.Fatalf("list memcached: (%v)", err)
-	}
-
-}
-*/
