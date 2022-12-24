@@ -67,6 +67,12 @@ func startWatchers(clientSet *kubernetes.Clientset, exitScenario *v1beta1.Watche
 	if len(exitScenario.Jobs) > 0 {
 		go WatchJobs(exitScenario.Jobs, interestingEvents, stopper, factory.Batch().V1().Jobs().Informer())
 	}
+	if len(exitScenario.Deployments) > 0 {
+		go WatchDeployments(exitScenario.Deployments, interestingEvents, stopper, factory.Apps().V1().Deployments().Informer())
+	}
+	if len(exitScenario.StatefulSets) > 0 {
+		go WatchStatefulSets(exitScenario.StatefulSets, interestingEvents, stopper, factory.Apps().V1().StatefulSets().Informer())
+	}
 
 	logger.Info("All conditions checkers started")
 }
@@ -142,6 +148,21 @@ func processExitScenario(exitScenario *v1beta1.WatcherSpec) (*ExitScenarioState,
 	for k, _ := range exitScenario.Jobs {
 		exitScenario.Jobs[k].ID = id
 		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Jobs[k])})
+		id++
+	}
+	for k, _ := range exitScenario.Deployments {
+		exitScenario.Deployments[k].ID = id
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Deployments[k])})
+		id++
+	}
+	for k, _ := range exitScenario.StatefulSets {
+		exitScenario.StatefulSets[k].ID = id
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.StatefulSets[k])})
+		id++
+	}
+	for k, _ := range exitScenario.Watchers {
+		exitScenario.Watchers[k].ID = id
+		exitScenarioState.Conditions = append(exitScenarioState.Conditions, Condition{ID: id, Met: false, Description: fmt.Sprintf("%#v", exitScenario.Watchers[k])})
 		id++
 	}
 	return exitScenarioState, nil
